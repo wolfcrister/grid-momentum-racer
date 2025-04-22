@@ -72,16 +72,11 @@ const ovalCheckpoints = [
 // Finish line (unchanged)
 const finishLineOval = getFinishLine();
 
-// Set starting positions on the top straight, just behind the finish line
-const numberOfStartingPositions = 4;
-const startingY = padding + trackWidth - 1; // y=4 (bottom of top straight)
-const startingXs = [padding + 1, padding + 2, padding + 3, padding + 4];
-const ovalStartPositions = Array(numberOfStartingPositions)
-  .fill(0)
-  .map((_, i) => ({
-    position: { x: startingXs[i], y: startingY },
-    direction: "E" as Direction
-  }));
+// Set starting positions ON the finish line tiles, facing south
+const ovalStartPositions = finishLineOval.map(pos => ({
+  position: { ...pos },
+  direction: "S" as Direction,
+}));
 
 export const tracks = {
   oval: {
