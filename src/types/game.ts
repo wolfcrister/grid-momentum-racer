@@ -1,4 +1,3 @@
-
 export type Position = {
   x: number;
   y: number;
@@ -17,6 +16,7 @@ export type Player = {
   checkpoints: number;
   totalCheckpoints: number;
   isFinished: boolean;
+  crashed: boolean;  // New field
 };
 
 export type GameMode = "turn-based" | "programming";

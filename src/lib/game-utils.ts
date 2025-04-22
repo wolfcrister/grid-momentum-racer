@@ -22,13 +22,17 @@ export function getNextPosition(position: Position, direction: Direction): Posit
 
 // Get valid moves based on momentum rules
 export function getValidMoves(player: Player, boardSize: number): Position[] {
+  if (player.crashed) return [];
+  
   const currentPos = player.position;
   const currentSpeed = player.speed;
   const currentDirection = player.direction;
 
-  // If player has no speed, they can move to any adjacent tile
+  // If player has no speed, they can move to any adjacent tile ON THE TRACK
   if (currentSpeed === 0) {
-    return getAllAdjacentPositions(currentPos, boardSize);
+    return getAllAdjacentPositions(currentPos, boardSize).filter(pos => 
+      tracks.oval.trackTiles.some(tt => tt.x === pos.x && tt.y === pos.y)
+    );
   }
 
   // Calculate the momentum position (continuing with same direction and speed)
@@ -36,13 +40,15 @@ export function getValidMoves(player: Player, boardSize: number): Position[] {
   
   const validMoves: Position[] = [];
   
-  // Add the momentum position if it's valid
-  if (isValidPosition(momentumPos, boardSize)) {
+  // Add the momentum position if it's valid and on track
+  if (isValidPosition(momentumPos, boardSize) && 
+      tracks.oval.trackTiles.some(tt => tt.x === momentumPos.x && tt.y === momentumPos.y)) {
     validMoves.push(momentumPos);
   }
   
-  // Add the positions around the momentum position (adjustments)
-  const adjacentToMomentum = getAllAdjacentPositions(momentumPos, boardSize);
+  // Add the positions around the momentum position (adjustments), but only if they're on track
+  const adjacentToMomentum = getAllAdjacentPositions(momentumPos, boardSize)
+    .filter(pos => tracks.oval.trackTiles.some(tt => tt.x === pos.x && tt.y === pos.y));
   validMoves.push(...adjacentToMomentum);
   
   return validMoves;
@@ -270,4 +276,9 @@ function generateTrackTiles(): Position[] {
   }
   
   return trackTiles;
+}
+
+// Add a new function to check if a move would result in a crash
+export function checkCrash(position: Position): boolean {
+  return !tracks.oval.trackTiles.some(tt => tt.x === position.x && tt.y === position.y);
 }

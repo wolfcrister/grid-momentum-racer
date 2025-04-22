@@ -1,4 +1,3 @@
-
 import { cn } from "@/lib/utils";
 import { Position, Direction, Player } from "@/types/game";
 import { useState, useEffect } from "react";
@@ -42,10 +41,10 @@ export function Car({ player, position, direction, isActive }: CarProps) {
   };
 
   const carColorClasses = {
-    red: "bg-primary text-white",
-    blue: "bg-secondary text-white",
-    yellow: "bg-accent text-black",
-    green: "bg-green-500 text-white"
+    red: player.crashed ? "bg-red-900/50 text-white" : "bg-primary text-white",
+    blue: player.crashed ? "bg-blue-900/50 text-white" : "bg-secondary text-white",
+    yellow: player.crashed ? "bg-yellow-900/50 text-black" : "bg-accent text-black",
+    green: player.crashed ? "bg-green-900/50 text-white" : "bg-green-500 text-white"
   };
 
   const getDirectionIcon = () => {
@@ -88,21 +87,17 @@ export function Car({ player, position, direction, isActive }: CarProps) {
           isActive && "ring-2 ring-white"
         )}
       >
-        {/* Car shape with direction indicator */}
         <div className="relative w-full h-full flex items-center justify-center">
-          {/* Player number */}
           <div className="absolute inset-0 flex items-center justify-center font-bold text-lg">
             {player.id}
           </div>
           
-          {/* Direction indicator */}
           <div className="absolute bottom-0.5 right-0.5">
             {getDirectionIcon()}
           </div>
         </div>
       </div>
       
-      {/* Momentum indicator */}
       {player.speed > 0 && (
         <div className="absolute -bottom-3 left-1/2 transform -translate-x-1/2 flex space-x-1">
           {Array.from({ length: player.speed }).map((_, i) => (

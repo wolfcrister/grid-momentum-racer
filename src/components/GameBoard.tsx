@@ -29,12 +29,12 @@ export function GameBoard({
     const position: Position = { x, y };
     const isCheckpoint = checkpoints.some(cp => cp.x === x && cp.y === y);
     const isFinish = finishLine.some(fl => fl.x === x && fl.y === y);
-    const isValidMove = validMoves.some(vm => vm.x === x && vm.y === y);
+    const isValidMove = validMoves.some(vm => vm.x === x && vm.y === y) && !players[currentPlayer].crashed;
     const isTrackTile = tracks.oval.trackTiles.some(tt => tt.x === x && tt.y === y);
     
     // Calculate momentum position
     const player = players[currentPlayer];
-    const isMomentumPosition = player.speed > 0 && 
+    const isMomentumPosition = player.speed > 0 && !player.crashed && 
       validMoves.length > 0 &&
       isValidMove &&
       Math.abs(x - player.position.x) === Math.abs(player.direction === "E" || player.direction === "W" ? player.speed : 0) &&
