@@ -1,4 +1,3 @@
-
 import { Position, Direction } from "@/types/game";
 
 // Helper to generate all positions across a certain X between min/max Y (inclusive)
@@ -20,12 +19,12 @@ function horizontalLine(y: number, xStart: number, xEnd: number): Position[] {
 }
 
 // Generate the track tiles for a 20x20 board with a 4-tile wide oval track
-function generateOvalTrackTiles(): Position[] {
+function generateOvalTrackTiles() {
   const trackTiles: Position[] = [];
   const size = 20;
   const trackWidth = 4;
   const padding = 1;
-  
+
   // Top/bottom straights
   for (let x = padding; x < size - padding; x++) {
     for (let y = padding; y < padding + trackWidth; y++) trackTiles.push({ x, y });
@@ -41,34 +40,60 @@ function generateOvalTrackTiles(): Position[] {
 
 const ovalTrackTiles = generateOvalTrackTiles();
 
-// Create finish line that crosses horizontally on the top straight
-function getFinishLineOnTrack(): Position[] {
-  // This creates a horizontal finish line on the top straight around x=10
-  return ovalTrackTiles.filter(tile => 
-    tile.y >= 1 && 
-    tile.y <= 4 && 
-    tile.x === 10
-  );
+// --- Top straight Y and X ranges ---
+
+const size = 20;
+const trackWidth = 4;
+const padding = 1;
+const topStraightY = padding; // y=1
+const xMin = padding;         // x=1
+const xMax = size - padding - 1; // x=18
+
+// Create finish line as a horizontal strip spanning the top straight road tiles
+function getFinishLineOnTopStraight(): Position[] {
+  // For the finish line, use the center two rows of the top straight if trackWidth=4, e.g., y=2,3 (middle of 1,2,3,4)
+  const finishLineRows = trackWidth % 2 === 0
+    ? [topStraightY + 1, topStraightY + 2] // y=2,3 if trackWidth=4
+    : [topStraightY + Math.floor(trackWidth / 2)];
+  // The finish should run fully across the top road from xMin to xMax (the road, not the curbs/walls)
+  let positions: Position[] = [];
+  for (const y of finishLineRows) {
+    positions = positions.concat(horizontalLine(y, xMin, xMax));
+  }
+  // Only include those tiles which are actually track tiles (i.e., for edge safety)
+  return positions.filter(tile => ovalTrackTiles.some(tt => tt.x === tile.x && tt.y === tile.y));
 }
 
-const finishLineOval = getFinishLineOnTrack();
+const finishLineOval = getFinishLineOnTopStraight();
+
+// Set starting positions on the top straight, just behind or on the finish line
+// We'll start at xMin+1, moving rightwards for 4 players (spaced out)
+const numberOfStartingPositions = 4;
+const startingY = topStraightY + trackWidth - 1; // e.g., y=4 (bottom of top straight)
+const startingXs = [xMin + 2, xMin + 4, xMin + 6, xMin + 8]; // e.g. [3,5,7,9]
+const ovalStartPositions = Array(numberOfStartingPositions)
+  .fill(0)
+  .map((_, i) => ({
+    position: { x: startingXs[i], y: startingY },
+    direction: "E" as Direction
+  }));
+
+// Define checkpoints: first checkpoint is the finish line, then side/bottom corners
+const ovalCheckpoints = [
+  // All finish line tiles (as a checkpoint)
+  ...finishLineOval,
+  // Others: right, bottom, left (middle of each straight)
+  { x: xMax, y: Math.floor(size / 2) },   // Right
+  { x: Math.floor(size / 2), y: size - padding - 1 }, // Bottom
+  { x: xMin, y: Math.floor(size / 2) },   // Left
+];
 
 export const tracks = {
   oval: {
     size: 20,
-    checkpoints: [
-      { x: 5, y: 1 },   // Top
-      { x: 18, y: 10 }, // Right
-      { x: 10, y: 18 }, // Bottom
-      { x: 1, y: 10 },  // Left
-    ],
+    checkpoints: ovalCheckpoints,
     finishLine: finishLineOval,
-    startPositions: [
-      { position: { x: 2, y: 5 }, direction: "E" as Direction },
-      { position: { x: 2, y: 6 }, direction: "E" as Direction },
-      { position: { x: 2, y: 7 }, direction: "E" as Direction },
-      { position: { x: 2, y: 8 }, direction: "E" as Direction },
-    ],
+    startPositions: ovalStartPositions,
     trackTiles: ovalTrackTiles,
   },
 
