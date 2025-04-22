@@ -9,6 +9,7 @@ export interface MoveLogEntry {
   to: Position;
   round: number;
   speedChange: number;
+  momentum?: [number, number]; // Add momentum property
 }
 
 interface MoveLogProps {
@@ -34,6 +35,11 @@ export function MoveLog({ moves, maxEntries = 10 }: MoveLogProps) {
               : move.speedChange < 0 
                 ? `${move.speedChange}` 
                 : "±0";
+            
+            // Format momentum vector if available
+            const momentumText = move.momentum 
+              ? `(${move.momentum[0]},${move.momentum[1]})` 
+              : "";
                 
             return (
               <div key={index} className="text-sm flex items-center gap-1">
@@ -50,6 +56,11 @@ export function MoveLog({ moves, maxEntries = 10 }: MoveLogProps) {
                 <span className="font-mono">
                   ({move.from.x},{move.from.y})→({move.to.x},{move.to.y})
                 </span>
+                {move.momentum && (
+                  <span className="font-mono text-muted-foreground ml-1">
+                    {momentumText}
+                  </span>
+                )}
                 <span 
                   className={`font-mono ml-auto ${
                     move.speedChange > 0 ? "text-green-500" :

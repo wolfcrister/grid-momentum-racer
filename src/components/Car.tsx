@@ -1,3 +1,4 @@
+
 import { cn } from "@/lib/utils";
 import { Position, Direction, Player } from "@/types/game";
 import { useState, useEffect } from "react";
@@ -14,17 +15,25 @@ interface CarProps {
 export function Car({ player, position, direction, isActive }: CarProps) {
   const [prevPosition, setPrevPosition] = useState(position);
   const [animating, setAnimating] = useState(false);
+  const [spinning, setSpinning] = useState(false);
 
   useEffect(() => {
     if (position.x !== prevPosition.x || position.y !== prevPosition.y) {
       setAnimating(true);
+      
+      // Check if this was a spin (speed went to 0 but not crashed)
+      if (player.speed === 0 && !player.crashed) {
+        setSpinning(true);
+        setTimeout(() => setSpinning(false), 1000);
+      }
+      
       const timer = setTimeout(() => {
         setAnimating(false);
         setPrevPosition(position);
       }, 300);
       return () => clearTimeout(timer);
     }
-  }, [position, prevPosition]);
+  }, [position, prevPosition, player.speed, player.crashed]);
 
   const getRotation = () => {
     switch (direction) {
@@ -83,6 +92,7 @@ export function Car({ player, position, direction, isActive }: CarProps) {
           carColorClasses[player.color as keyof typeof carColorClasses],
           "rounded-md",
           animating && "scale-110",
+          spinning && "animate-spin",
           isActive && "ring-2 ring-white",
           player.crashed && "opacity-60 grayscale"
         )}
@@ -100,6 +110,14 @@ export function Car({ player, position, direction, isActive }: CarProps) {
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="text-white font-bold text-xs bg-red-800/70 px-1 rounded rotate-0">
                 X
+              </div>
+            </div>
+          )}
+          
+          {spinning && !player.crashed && (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="text-white font-bold text-xs bg-orange-500/70 px-1 rounded rotate-0">
+                SPIN
               </div>
             </div>
           )}

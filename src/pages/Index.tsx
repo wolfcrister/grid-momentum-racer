@@ -20,10 +20,12 @@ import {
   checkFinishLineCrossed,
   checkCrash,
   distanceFromTrack,
-  getReverseDirection
+  getReverseDirection,
+  getLastDelta
 } from "@/lib/game-utils";
 import { Button } from "@/components/ui/button";
 import { tracks } from "@/lib/tracks";
+import { toast } from "@/components/ui/sonner";
 
 const playerColors = ["red", "blue", "yellow", "green"] as const;
 
@@ -159,11 +161,20 @@ const Index = () => {
       } else if (momentumDist === 1) {
         // SPIN: stay in game, set speed 0, reverse direction
         didSpin = true;
+        // Show a toast indicating a spin
+        toast("Player " + player.id + " spun out!", {
+          description: "Speed reset to 0",
+          duration: 2000
+        });
       }
 
       if (isCrashed) {
         player.crashed = true;
         player.speed = 0;
+        toast("Player " + player.id + " crashed!", {
+          description: "Out of the race",
+          duration: 3000
+        });
       } else if (didSpin) {
         player.speed = 0;
         player.direction = getReverseDirection(newDirection);
@@ -185,6 +196,9 @@ const Index = () => {
       player.direction = didSpin ? getReverseDirection(newDirection) : newDirection;
       player.speed = isCrashed ? 0 : (didSpin ? 0 : newSpeed + speedBonus);
 
+      // Calculate momentum vector for log
+      const momentumVector: [number, number] = [dx, dy];
+
       // Record the move in the log
       const speedChange = (player.speed - oldSpeed);
       setMoveLog(prev => [
@@ -195,7 +209,8 @@ const Index = () => {
           from: lastPosition,
           to: newPosition,
           round: currentRound,
-          speedChange: speedChange
+          speedChange: speedChange,
+          momentum: momentumVector
         }
       ]);
 
@@ -204,7 +219,9 @@ const Index = () => {
 
       // Check if crossed checkpoint line/unit (only if not crashed)
       if (!isCrashed) {
-        const cpIndex = checkCheckpointCrossed(lastPosition, newPosition, track.checkpoints);
+        // Type fixing: ensure we're working with checkpoints as Position[][]
+        const checkpointLines = track.checkpoints as Position[][];
+        const cpIndex = checkCheckpointCrossed(lastPosition, newPosition, checkpointLines);
         if (
           cpIndex !== null &&
           !player.checkpointsPassed.has(cpIndex) &&
@@ -213,6 +230,12 @@ const Index = () => {
           const newPassed = new Set(player.checkpointsPassed);
           newPassed.add(cpIndex);
           player.checkpointsPassed = newPassed;
+          
+          // Show a toast for checkpoint
+          toast("Checkpoint passed!", {
+            description: `Player ${player.id}: ${player.checkpointsPassed.size}/${player.totalCheckpoints}`,
+            duration: 2000
+          });
         }
       }
 
@@ -224,6 +247,12 @@ const Index = () => {
       ) {
         player.isFinished = true;
         setWinner(player);
+        
+        // Show a toast for winning
+        toast("Winner!", {
+          description: `Player ${player.id} has won the race!`,
+          duration: 5000
+        });
       }
 
       updatedPlayers[playerIndex] = player;
