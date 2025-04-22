@@ -1,4 +1,3 @@
-
 import { Position, Direction, Player } from "@/types/game";
 import { tracks } from "@/lib/tracks";
 
@@ -40,6 +39,10 @@ export function getValidMoves(player: Player, boardSize: number): Position[] {
 
   // Calculate the momentum position (continuing with same direction/speed)
   const momentumPos = calculateMomentumPosition(currentPos, currentDirection, currentSpeed);
+  
+  // Get positions that would represent accelerating (speed + 1)
+  const acceleratedPos = calculateMomentumPosition(currentPos, currentDirection, currentSpeed + 1);
+  
   const validMoves: Position[] = [];
 
   // If the momentum position is in-bounds AND on track, offer it
@@ -48,6 +51,14 @@ export function getValidMoves(player: Player, boardSize: number): Position[] {
     trackLayout.trackTiles.some(tt => tt.x === momentumPos.x && tt.y === momentumPos.y)
   ) {
     validMoves.push(momentumPos);
+  }
+  
+  // If the accelerated position is in-bounds AND on track, offer it for increased speed
+  if (
+    isValidPosition(acceleratedPos, boardSize) &&
+    trackLayout.trackTiles.some(tt => tt.x === acceleratedPos.x && tt.y === acceleratedPos.y)
+  ) {
+    validMoves.push(acceleratedPos);
   }
   
   // Always allow adjacent positions to the CURRENT position that are on track
@@ -138,8 +149,18 @@ export function calculateNewSpeed(player: Player, newPosition: Position): number
   // This represents the speed based on the movement
   const distance = Math.max(dx, dy);
   
-  // In grid racer, your speed is based on your previous move
-  return distance;
+  // If the distance equals the current speed + 1, the player is accelerating
+  if (distance === player.speed + 1) {
+    return player.speed + 1;
+  }
+  // If the distance equals the current speed, maintaining momentum
+  else if (distance === player.speed) {
+    return player.speed;
+  }
+  // Otherwise, the player is slowing down or changing direction
+  else {
+    return distance;
+  }
 }
 
 // Check if there is a slipstream boost available
