@@ -60,8 +60,8 @@ function getFinishLine(): Position[] {
 // --- Checkpoint A: vertical line from (14,15) to (14,18) ---
 const checkpointA = verticalLine(14, 15, 18);
 
-// --- Checkpoint B: horizontal line from (1,11) to (1,14) ---
-const checkpointB = horizontalLine(11, 1, 14);
+// --- Checkpoint B: horizontal line from (1,11) to (4,11) ---
+const checkpointB = horizontalLine(11, 1, 4);
 
 // Checkpoints, in lap order (A then B)
 const ovalCheckpoints = [
