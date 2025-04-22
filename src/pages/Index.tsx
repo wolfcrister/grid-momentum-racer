@@ -220,7 +220,7 @@ const Index = () => {
       // Check if crossed checkpoint line/unit (only if not crashed)
       if (!isCrashed) {
         // Type fixing: ensure we're working with checkpoints as Position[][]
-        const checkpointLines = track.checkpoints as Position[][];
+        const checkpointLines = track.checkpoints;
         const cpIndex = checkCheckpointCrossed(lastPosition, newPosition, checkpointLines);
         if (
           cpIndex !== null &&
