@@ -32,10 +32,10 @@ export function GameBoard({
     if (player.crashed || player.speed === 0) return null;
 
     // Use the utility function to calculate momentum position
+    // Important: Use the actual speed value of the player
     const momentumPos = calculateMomentumPosition(player.position, player.direction, player.speed);
     
-    // Check if the calculated momentum position is a valid move
-    // We don't restrict to validMoves anymore, as we want to show it even if it would cause a crash
+    // Check if the calculated momentum position is within board boundaries
     if (momentumPos.x >= 0 && momentumPos.x < size && 
         momentumPos.y >= 0 && momentumPos.y < size) {
       return momentumPos;

@@ -1,4 +1,3 @@
-
 import { cn } from "@/lib/utils";
 import { Position, Direction, Player } from "@/types/game";
 import { useState, useEffect } from "react";
@@ -79,13 +78,13 @@ export function Car({ player, position, direction, isActive }: CarProps) {
     >
       <div
         className={cn(
-          "w-[65%] h-[65%] flex items-center justify-center", // Reduced size from 80% to 65%
+          "w-[65%] h-[65%] flex items-center justify-center",
           "transition-transform duration-300 shadow-lg",
           carColorClasses[player.color as keyof typeof carColorClasses],
           "rounded-md",
           animating && "scale-110",
           isActive && "ring-2 ring-white",
-          player.crashed && "opacity-60 grayscale" // Make crashed players visually distinct
+          player.crashed && "opacity-60 grayscale"
         )}
       >
         <div className="relative w-full h-full flex items-center justify-center">
