@@ -77,7 +77,7 @@ const Index = () => {
     if (!gameStarted) return;
     
     const player = players[currentPlayer];
-    const moves = getValidMoves(player, track.size);
+    const moves = getValidMoves(player, track.size, players);
     setValidMoves(moves);
   }, [currentPlayer, players, track.size, gameStarted]);
 
@@ -141,7 +141,7 @@ const Index = () => {
       if (!player.crashed) {
         const simPlayer = { ...player, position: newPosition, direction: newDirection, speed: newSpeed };
         (simPlayer as any).lastPosition = lastPosition; // for momentum
-        possibleMovesNextTurn = getValidMoves(simPlayer, track.size);
+        possibleMovesNextTurn = getValidMoves(simPlayer, track.size, players);
       }
 
       // Crash logic:

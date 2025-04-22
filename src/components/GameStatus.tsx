@@ -1,6 +1,6 @@
 
-import { cn } from "@/lib/utils";
-import { Player } from "@/types/game";
+import React from 'react';
+import { Player } from '@/types/game';
 
 interface GameStatusProps {
   players: Player[];
@@ -10,52 +10,53 @@ interface GameStatusProps {
 
 export function GameStatus({ players, currentRound, winner }: GameStatusProps) {
   return (
-    <div className="p-4 bg-card rounded-lg shadow-lg border border-border">
-      <div className="flex justify-between items-center mb-2">
-        <h3 className="font-bold text-lg">Round {currentRound}</h3>
-        {winner && (
-          <div className="px-3 py-1 bg-accent text-accent-foreground font-bold rounded-md animate-pulse">
-            Player {winner.id} Wins!
-          </div>
-        )}
+    <div className="bg-card p-4 rounded-lg shadow-md border border-border">
+      <h3 className="font-bold mb-3">Game Status</h3>
+      
+      <div className="text-sm mb-2">
+        <span className="text-muted-foreground">Round: </span>
+        <span className="font-medium">{currentRound}</span>
       </div>
       
       <div className="space-y-2">
-        {players.map((player) => (
-          <div key={player.id} className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div 
-                className={cn(
-                  "w-3 h-3 rounded-full",
-                  player.color === "red" && "bg-primary",
-                  player.color === "blue" && "bg-secondary",
-                  player.color === "yellow" && "bg-accent",
-                  player.color === "green" && "bg-green-500"
-                )}
-              />
-              <span>Player {player.id}</span>
-            </div>
-            <div className="flex gap-2 items-center">
-              <div className="flex items-center gap-1">
-                <span className="text-xs text-muted-foreground">Speed:</span>
+        <h4 className="text-sm font-medium">Players</h4>
+        
+        {players.map((player) => {
+          // Display checkpoints as count from set
+          const checkpointCount = player.checkpointsPassed.size;
+          
+          return (
+            <div 
+              key={player.id} 
+              className={`p-2 rounded flex items-center justify-between ${
+                player.crashed 
+                  ? "bg-muted/50 text-muted-foreground" 
+                  : "bg-muted"
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <div 
+                  className={`w-3 h-3 rounded-full ${
+                    player.color === "red" ? "bg-primary" :
+                    player.color === "blue" ? "bg-secondary" :
+                    player.color === "yellow" ? "bg-accent" :
+                    "bg-green-500"
+                  }`}
+                />
+                <span className={player.crashed ? "line-through" : ""}>
+                  Player {player.id}
+                </span>
+              </div>
+              <div className="text-xs">
+                <span className="text-muted-foreground mr-1">Speed:</span>
                 <span className="font-mono">{player.speed}</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <span className="text-xs text-muted-foreground">Checkpoints:</span>
-                <span className="font-mono">{player.checkpoints}/{player.totalCheckpoints}</span>
+                <span className="mx-1">|</span>
+                <span className="text-muted-foreground mr-1">CP:</span>
+                <span className="font-mono">{checkpointCount}/{player.totalCheckpoints}</span>
               </div>
             </div>
-          </div>
-        ))}
-      </div>
-
-      <div className="mt-4 pt-3 border-t border-border">
-        <h4 className="text-sm font-semibold mb-1">Momentum Rules</h4>
-        <ul className="text-xs space-y-1 text-muted-foreground">
-          <li>• Brighter highlight shows momentum direction</li>
-          <li>• You can pick any of the highlighted tiles</li>
-          <li>• Your choice determines next turn's options</li>
-        </ul>
+          );
+        })}
       </div>
     </div>
   );

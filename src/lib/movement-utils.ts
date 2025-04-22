@@ -1,3 +1,4 @@
+
 import { Position, Direction, Player } from "@/types/game";
 import { tracks } from "@/lib/tracks";
 import { isValidPosition } from "./position-utils";
@@ -102,4 +103,84 @@ export function calculateNewSpeed(player: Player, newPosition: Position): number
   else {
     return distance;
   }
+}
+
+// Check if a position has a player occupying it
+export function isPositionOccupiedByPlayer(position: Position, players: Player[]): boolean {
+  return players.some(player => 
+    !player.crashed && player.position.x === position.x && player.position.y === position.y
+  );
+}
+
+// Calculate valid moves accounting for player collisions
+export function getValidMovesWithCollisions(player: Player, players: Player[], boardSize: number): Position[] {
+  const otherPlayers = players.filter(p => p.id !== player.id && !p.crashed);
+  const validMoves = getValidMovesByMomentum(player, boardSize);
+  
+  // Filter out positions occupied by other players
+  return validMoves.filter(move => 
+    !isPositionOccupiedByPlayer(move, otherPlayers)
+  );
+}
+
+// Base valid moves by momentum without checking collisions
+export function getValidMovesByMomentum(player: Player, boardSize: number): Position[] {
+  if (player.crashed) return [];
+  // Get the track layout from the imported tracks
+  const trackLayout = tracks.oval; // always oval for now—could refactor for trackType
+  const currentPos = player.position;
+
+  // ---- Case 1: Speed is zero -> can move to any adjacent tile ON TRACK ----
+  if (player.speed === 0) {
+    return getAllAdjacentPositions(currentPos, boardSize).filter(pos => 
+      trackLayout.trackTiles.some(tt => tt.x === pos.x && tt.y === pos.y)
+    );
+  }
+
+  // ---- Case 2: Use the last movement vector as momentum ----
+  // Infer last movement vector (dx, dy)
+  const [dx, dy] = getLastDelta(player);
+
+  // No movement, so no momentum
+  if (dx === 0 && dy === 0) {
+    return getAllAdjacentPositions(currentPos, boardSize).filter(pos =>
+      trackLayout.trackTiles.some(tt => tt.x === pos.x && tt.y === pos.y)
+    );
+  }
+
+  // Correct 2D vector momentum: allowed are (dx+sdx, dy+sdy), for sdx/sdy in [-1,0,1]
+  const validMoves: Position[] = [];
+  for (let sdx = -1; sdx <= 1; sdx++) {
+    for (let sdy = -1; sdy <= 1; sdy++) {
+      const newDx = dx + sdx;
+      const newDy = dy + sdy;
+      // Don't allow no movement at all:
+      if (newDx === 0 && newDy === 0) continue;
+      const nextPos = { x: currentPos.x + newDx, y: currentPos.y + newDy };
+      if (
+        isValidPosition(nextPos, boardSize) &&
+        trackLayout.trackTiles.some(tt => tt.x === nextPos.x && tt.y === nextPos.y)
+      ) {
+        validMoves.push(nextPos);
+      }
+    }
+  }
+
+  return validMoves;
+}
+
+// Helper function for adjacent positions
+function getAllAdjacentPositions(position: Position, boardSize: number): Position[] {
+  const { x, y } = position;
+  const adjacent: Position[] = [];
+  for (let dx = -1; dx <= 1; dx++) {
+    for (let dy = -1; dy <= 1; dy++) {
+      if (dx === 0 && dy === 0) continue;
+      const newPos = { x: x + dx, y: y + dy };
+      if (isValidPosition(newPos, boardSize)) {
+        adjacent.push(newPos);
+      }
+    }
+  }
+  return adjacent;
 }

@@ -1,52 +1,19 @@
 import { Player, Position } from "@/types/game";
 import { getAllAdjacentPositions, isValidPosition } from "./position-utils";
-import { getLastDelta } from "./movement-utils";
+import { getLastDelta, getValidMovesByMomentum, getValidMovesWithCollisions, isPositionOccupiedByPlayer } from "./movement-utils";
 import { tracks } from "./tracks";
 
 // Get valid moves based on true momentum rules (vector-based)
-export function getValidMoves(player: Player, boardSize: number): Position[] {
+export function getValidMoves(player: Player, boardSize: number, allPlayers?: Player[]): Position[] {
   if (player.crashed) return [];
-  // Get the track layout from the imported tracks
-  const trackLayout = tracks.oval; // always oval for now—could refactor for trackType
-  const currentPos = player.position;
-
-  // ---- Case 1: Speed is zero -> can move to any adjacent tile ON TRACK ----
-  if (player.speed === 0) {
-    return getAllAdjacentPositions(currentPos, boardSize).filter(pos => 
-      trackLayout.trackTiles.some(tt => tt.x === pos.x && tt.y === pos.y)
-    );
+  
+  // If allPlayers is provided, check for collisions with other players
+  if (allPlayers) {
+    return getValidMovesWithCollisions(player, allPlayers, boardSize);
   }
-
-  // ---- Case 2: Use the last movement vector as momentum ----
-  // Infer last movement vector (dx, dy)
-  const [dx, dy] = getLastDelta(player);
-
-  // No movement, so no momentum
-  if (dx === 0 && dy === 0) {
-    return getAllAdjacentPositions(currentPos, boardSize).filter(pos =>
-      trackLayout.trackTiles.some(tt => tt.x === pos.x && tt.y === pos.y)
-    );
-  }
-
-  // Correct 2D vector momentum: allowed are (dx+sdx, dy+sdy), for sdx/sdy in [-1,0,1]
-  const validMoves: Position[] = [];
-  for (let sdx = -1; sdx <= 1; sdx++) {
-    for (let sdy = -1; sdy <= 1; sdy++) {
-      const newDx = dx + sdx;
-      const newDy = dy + sdy;
-      // Don't allow no movement at all:
-      if (newDx === 0 && newDy === 0) continue;
-      const nextPos = { x: currentPos.x + newDx, y: currentPos.y + newDy };
-      if (
-        isValidPosition(nextPos, boardSize) &&
-        trackLayout.trackTiles.some(tt => tt.x === nextPos.x && tt.y === nextPos.y)
-      ) {
-        validMoves.push(nextPos);
-      }
-    }
-  }
-
-  return validMoves;
+  
+  // Otherwise, just use the basic momentum rules
+  return getValidMovesByMomentum(player, boardSize);
 }
 
 // Check if there is a slipstream boost available
@@ -129,4 +96,81 @@ const reverseDirection: Record<Direction, Direction> = {
 };
 export function getReverseDirection(direction: Direction): Direction {
   return reverseDirection[direction];
+}
+
+// Check if a player has crossed a checkpoint line
+export function checkCheckpointCrossed(
+  from: Position,
+  to: Position,
+  checkpoints: Position[][]
+): number | null {
+  // For each checkpoint line:
+  for (let i = 0; i < checkpoints.length; i++) {
+    const checkpointLine = checkpoints[i];
+    // If from-to segment crosses any tile of the checkpoint line, return its index
+    for (const tile of checkpointLine) {
+      if (doesSegmentPassThroughTile(from, to, tile)) {
+        return i;
+      }
+    }
+  }
+  return null;
+}
+
+// Helper: Does the line from-from-to pass through the tile exactly
+function doesSegmentPassThroughTile(from: Position, to: Position, tile: Position): boolean {
+  // For simplicity, if either endpoint is on the tile:
+  if (
+    (from.x === tile.x && from.y === tile.y) ||
+    (to.x === tile.x && to.y === tile.y)
+  )
+    return true;
+
+  // If moving in straight line, any tile strictly between (in Chebyshev path), consider segment
+  // Bresenham's line algorithm for ALL points between
+  const points = getLinePoints(from, to);
+  return points.some(
+    (p) => p.x === tile.x && p.y === tile.y
+  );
+}
+
+// Bresenham's algorithm for grid line travel
+function getLinePoints(from: Position, to: Position): Position[] {
+  const points: Position[] = [];
+  let x0 = from.x, y0 = from.y;
+  let x1 = to.x, y1 = to.y;
+  const dx = Math.abs(x1 - x0), dy = Math.abs(y1 - y0);
+  const sx = x0 < x1 ? 1 : -1;
+  const sy = y0 < y1 ? 1 : -1;
+  let err = dx - dy;
+
+  while (true) {
+    if (!(x0 === from.x && y0 === from.y) && !(x0 === to.x && y0 === to.y)) {
+      points.push({ x: x0, y: y0 });
+    }
+    if (x0 === x1 && y0 === y1) break;
+    const e2 = 2 * err;
+    if (e2 > -dy) { err -= dy; x0 += sx; }
+    if (e2 < dx) { err += dx; y0 += sy; }
+  }
+  return points;
+}
+
+// For finish line: treat as "tile crossed" for now; logic can match this format for future extension
+export function checkFinishLineCrossed(
+  from: Position,
+  to: Position,
+  finishLine: Position[]
+): boolean {
+  for (const tile of finishLine) {
+    if (doesSegmentPassThroughTile(from, to, tile)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+export function checkCrash(position: Position): boolean {
+  // Only crash if the target position is not on track in the currently selected track  
+  return !tracks.oval.trackTiles.some(tt => tt.x === position.x && tt.y === position.y);
 }
