@@ -1,6 +1,5 @@
 
 import { Position } from "@/types/game";
-import { tracks } from "@/lib/tracks";
 
 // Check if a position is within board boundaries
 export function isValidPosition(position: Position, boardSize: number): boolean {
@@ -24,27 +23,8 @@ export function getAllAdjacentPositions(position: Position, boardSize: number): 
   return adjacent;
 }
 
-// Check if a player has crossed a checkpoint line
-export function checkCheckpointCrossed(
-  from: Position,
-  to: Position,
-  checkpoints: Position[][]
-): number | null {
-  // For each checkpoint line:
-  for (let i = 0; i < checkpoints.length; i++) {
-    const checkpointLine = checkpoints[i];
-    // If from-to segment crosses any tile of the checkpoint line, return its index
-    for (const tile of checkpointLine) {
-      if (doesSegmentPassThroughTile(from, to, tile)) {
-        return i;
-      }
-    }
-  }
-  return null;
-}
-
 // Helper: Does the line from-from-to pass through the tile exactly
-function doesSegmentPassThroughTile(from: Position, to: Position, tile: Position): boolean {
+export function doesSegmentPassThroughTile(from: Position, to: Position, tile: Position): boolean {
   // For simplicity, if either endpoint is on the tile:
   if (
     (from.x === tile.x && from.y === tile.y) ||
@@ -61,7 +41,7 @@ function doesSegmentPassThroughTile(from: Position, to: Position, tile: Position
 }
 
 // Bresenham's algorithm for grid line travel
-function getLinePoints(from: Position, to: Position): Position[] {
+export function getLinePoints(from: Position, to: Position): Position[] {
   const points: Position[] = [];
   let x0 = from.x, y0 = from.y;
   let x1 = to.x, y1 = to.y;
@@ -80,23 +60,4 @@ function getLinePoints(from: Position, to: Position): Position[] {
     if (e2 < dx) { err += dx; y0 += sy; }
   }
   return points;
-}
-
-// For finish line: treat as "tile crossed" for now; logic can match this format for future extension
-export function checkFinishLineCrossed(
-  from: Position,
-  to: Position,
-  finishLine: Position[]
-): boolean {
-  for (const tile of finishLine) {
-    if (doesSegmentPassThroughTile(from, to, tile)) {
-      return true;
-    }
-  }
-  return false;
-}
-
-export function checkCrash(position: Position): boolean {
-  // Only crash if the target position is not on track in the currently selected track  
-  return !tracks.oval.trackTiles.some(tt => tt.x === position.x && tt.y === position.y);
 }
