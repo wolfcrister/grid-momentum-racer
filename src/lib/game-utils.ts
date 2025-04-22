@@ -49,9 +49,11 @@ export function getValidMoves(player: Player, boardSize: number): Position[] {
   ) {
     validMoves.push(momentumPos);
   }
-  // Always allow ALL adjacent positions to the momentum position IF those are on track
-  const possibleMoves = getAllAdjacentPositions(momentumPos, boardSize)
+  
+  // Fix momentum logic: Always allow adjacent positions to the CURRENT position, not momentum position
+  const possibleMoves = getAllAdjacentPositions(currentPos, boardSize)
     .filter(pos => trackLayout.trackTiles.some(tt => tt.x === pos.x && tt.y === pos.y));
+  
   for (const pos of possibleMoves) {
     if (!validMoves.some(m => m.x === pos.x && m.y === pos.y)) {
       validMoves.push(pos);

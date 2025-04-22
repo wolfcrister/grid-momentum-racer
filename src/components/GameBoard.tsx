@@ -1,5 +1,4 @@
 
-
 import React from "react";
 import { cn } from "@/lib/utils";
 import { GridTile } from "./GridTile";
@@ -35,12 +34,13 @@ export function GameBoard({
     // Use the utility function to calculate momentum position
     const momentumPos = calculateMomentumPosition(player.position, player.direction, player.speed);
     
-    // Check if the calculated momentum position is in valid moves
-    if (validMoves.some(move => move.x === momentumPos.x && move.y === momentumPos.y)) {
+    // Check if the calculated momentum position is a valid move
+    // We don't restrict to validMoves anymore, as we want to show it even if it would cause a crash
+    if (momentumPos.x >= 0 && momentumPos.x < size && 
+        momentumPos.y >= 0 && momentumPos.y < size) {
       return momentumPos;
     }
     
-    // If momentum is not a valid move, return null instead of crashing
     return null;
   };
 
