@@ -18,7 +18,9 @@ import {
   checkSlipstream,
   checkCheckpoint,
   checkFinishLine,
-  checkCrash
+  checkCrash,
+  distanceFromTrack,
+  getReverseDirection
 } from "@/lib/game-utils";
 import { Button } from "@/components/ui/button";
 import { tracks } from "@/lib/tracks";
@@ -117,19 +119,62 @@ const Index = () => {
 
       // Save the last position for momentum calculation
       const lastPosition = { ...player.position };
+      const { trackTiles } = track;
 
       // Calculate new direction and speed
       const newDirection = getNewDirection(player.position, newPosition);
       const oldSpeed = player.speed;
       const newSpeed = calculateNewSpeed(player, newPosition);
 
-      // Check for crash
-      const isCrashed = checkCrash(newPosition);
-      player.crashed = isCrashed;
+      // Which tile would their MOMENTUM (vector) move take them to next?
+      const dx = newPosition.x - lastPosition.x;
+      const dy = newPosition.y - lastPosition.y;
+      const momentumPos = { x: newPosition.x + dx, y: newPosition.y + dy };
+
+      // Helper: how far off-track is the actual move & the momentum move?
+      const actualMoveDist = distanceFromTrack(newPosition, trackTiles);
+      const momentumDist = distanceFromTrack(momentumPos, trackTiles);
+
+      // Check for crash if no valid moves exist at this position next turn!
+      // If NONE of next moves are on track, crash the player
+      let possibleMovesNextTurn: Position[] = [];
+      if (!player.crashed) {
+        const simPlayer = { ...player, position: newPosition, direction: newDirection, speed: newSpeed };
+        (simPlayer as any).lastPosition = lastPosition; // for momentum
+        possibleMovesNextTurn = getValidMoves(simPlayer, track.size);
+      }
+
+      // Crash logic:
+      // 1. If there are zero valid moves for next turn, CRASH the player
+      // 2. If MOMENTUM would take them >1 off track: crash (out)
+      // 3. If exactly 1 off: spin, zero speed, reverse direction, but keep in-game
+
+      let isCrashed = false;
+      let didSpin = false;
+
+      if (possibleMovesNextTurn.length === 0) {
+        isCrashed = true;
+      } else if (momentumDist > 1) {
+        isCrashed = true;
+      } else if (momentumDist === 1) {
+        // SPIN: stay in game, set speed 0, reverse direction
+        didSpin = true;
+      }
+
+      if (isCrashed) {
+        player.crashed = true;
+        player.speed = 0;
+      } else if (didSpin) {
+        player.speed = 0;
+        player.direction = getReverseDirection(newDirection);
+        player.crashed = false; // merely spun, not out
+      } else {
+        player.crashed = false;
+      }
 
       // Check for slipstream (only if not crashed)
       let speedBonus = 0;
-      if (!isCrashed) {
+      if (!isCrashed && !didSpin) {
         const otherPlayers = prevPlayers.filter((_, i) => i !== playerIndex);
         const hasSlipstream = checkSlipstream(player, otherPlayers, newPosition);
         speedBonus = hasSlipstream ? 1 : 0;
@@ -137,8 +182,8 @@ const Index = () => {
 
       // Update player position and speed
       player.position = newPosition;
-      player.direction = newDirection;
-      player.speed = isCrashed ? 0 : newSpeed + speedBonus;
+      player.direction = didSpin ? getReverseDirection(newDirection) : newDirection;
+      player.speed = isCrashed ? 0 : (didSpin ? 0 : newSpeed + speedBonus);
 
       // Record the move in the log
       const speedChange = (player.speed - oldSpeed);

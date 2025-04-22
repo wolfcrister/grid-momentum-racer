@@ -1,4 +1,3 @@
-
 import { Player, Position } from "@/types/game";
 import { getAllAdjacentPositions, isValidPosition } from "./position-utils";
 import { getLastDelta } from "./movement-utils";
@@ -104,3 +103,30 @@ function isInFrontInDirection(relativePosition: Position, direction: Direction):
 // We need to import Direction here for the isInFrontInDirection function
 import { Direction } from "@/types/game";
 import { getNewDirection } from "./movement-utils";
+
+// Helper: checks how far from the nearest track tile a given position is
+export function distanceFromTrack(position: Position, trackTiles: Position[]): number {
+  let minDist = Infinity;
+  for (const tile of trackTiles) {
+    const dx = Math.abs(tile.x - position.x);
+    const dy = Math.abs(tile.y - position.y);
+    const dist = Math.max(dx, dy); // Chebyshev for grid
+    if (dist < minDist) minDist = dist;
+  }
+  return minDist === Infinity ? -1 : minDist;
+}
+
+// Helper: returns the direction 180 degrees opposite
+const reverseDirection: Record<Direction, Direction> = {
+  N: "S",
+  NE: "SW",
+  E: "W",
+  SE: "NW",
+  S: "N",
+  SW: "NE",
+  W: "E",
+  NW: "SE",
+};
+export function getReverseDirection(direction: Direction): Direction {
+  return reverseDirection[direction];
+}
