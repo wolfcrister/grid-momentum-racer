@@ -41,10 +41,14 @@ function generateOvalTrackTiles(): Position[] {
 
 const ovalTrackTiles = generateOvalTrackTiles();
 
-// Create finish line that only spans across the actual track
+// Create finish line that crosses horizontally on the top straight
 function getFinishLineOnTrack(): Position[] {
-  // This will create a finish line on the track at x=4,5 (on the left straight)
-  return ovalTrackTiles.filter(tile => (tile.x === 4 || tile.x === 5) && tile.y >= 1 && tile.y <= 18);
+  // This creates a horizontal finish line on the top straight around x=10
+  return ovalTrackTiles.filter(tile => 
+    tile.y >= 1 && 
+    tile.y <= 4 && 
+    tile.x === 10
+  );
 }
 
 const finishLineOval = getFinishLineOnTrack();

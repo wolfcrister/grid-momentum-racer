@@ -50,7 +50,7 @@ export function getValidMoves(player: Player, boardSize: number): Position[] {
     validMoves.push(momentumPos);
   }
   
-  // Fix momentum logic: Always allow adjacent positions to the CURRENT position, not momentum position
+  // Always allow adjacent positions to the CURRENT position that are on track
   const possibleMoves = getAllAdjacentPositions(currentPos, boardSize)
     .filter(pos => trackLayout.trackTiles.some(tt => tt.x === pos.x && tt.y === pos.y));
   
@@ -59,6 +59,7 @@ export function getValidMoves(player: Player, boardSize: number): Position[] {
       validMoves.push(pos);
     }
   }
+  
   return validMoves;
 }
 
