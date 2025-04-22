@@ -1,4 +1,3 @@
-
 import { Position, Direction } from "@/types/game";
 
 // Helper to generate all positions across a certain X between min/max Y (inclusive)
@@ -46,10 +45,10 @@ const size = 20;
 const trackWidth = 4;
 const padding = 1;
 
-// Finish line: vertical line at x=10, y=0..3 (4 tiles wide, matching track width)
+// Finish line: vertical line at x=10, y=1..4 (4 tiles wide, matching track width)
 function getFinishLine(): Position[] {
   const finishLineX = 10; // Middle-ish of 0..19
-  return verticalLine(finishLineX, 0, trackWidth - 1); // y=0..3
+  return verticalLine(finishLineX, 1, 4); // y=1..4 to account for padding
 }
 
 // Get the finish line positions
@@ -66,15 +65,15 @@ const ovalStartPositions = Array(numberOfStartingPositions)
     direction: "E" as Direction
   }));
 
-// Create checkpoint positions as lines crossing each straight section
+// Create checkpoint positions as lines crossing each straight section with padding
 const ovalCheckpoints = [
-  // Right straight - vertical line crossing the entire width of the track
+  // Right straight - vertical line crossing the entire width of the track with padding
   ...verticalLine(size - padding - Math.floor(trackWidth / 2), padding, size - padding - 1),
-
-  // Bottom straight - horizontal line crossing the entire width of the track
+  
+  // Bottom straight - horizontal line crossing the entire width of the track with padding
   ...horizontalLine(size - padding - Math.floor(trackWidth / 2), padding, size - padding - 1),
-
-  // Left straight - vertical line crossing the entire width of the track
+  
+  // Left straight - vertical line crossing the entire width of the track with padding
   ...verticalLine(padding + Math.floor(trackWidth / 2), padding, size - padding - 1)
 ];
 
@@ -108,4 +107,3 @@ export const tracks = {
     trackTiles: [], // TODO: implement for figure8 if needed!
   },
 };
-
