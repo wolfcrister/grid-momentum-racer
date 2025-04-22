@@ -48,6 +48,15 @@ export function GameStatus({ players, currentRound, winner }: GameStatusProps) {
           </div>
         ))}
       </div>
+
+      <div className="mt-4 pt-3 border-t border-border">
+        <h4 className="text-sm font-semibold mb-1">Momentum Rules</h4>
+        <ul className="text-xs space-y-1 text-muted-foreground">
+          <li>• Brighter highlight shows momentum direction</li>
+          <li>• You can pick any of the highlighted tiles</li>
+          <li>• Your choice determines next turn's options</li>
+        </ul>
+      </div>
     </div>
   );
 }

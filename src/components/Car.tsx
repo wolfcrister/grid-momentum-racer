@@ -2,6 +2,8 @@
 import { cn } from "@/lib/utils";
 import { Position, Direction, Player } from "@/types/game";
 import { useState, useEffect } from "react";
+import { MoveRight, MoveLeft, MoveUp, MoveDown, 
+        ArrowUpRight, ArrowUpLeft, ArrowDownRight, ArrowDownLeft } from "lucide-react";
 
 interface CarProps {
   player: Player;
@@ -46,52 +48,66 @@ export function Car({ player, position, direction, isActive }: CarProps) {
     green: "bg-green-500 text-white"
   };
 
+  const getDirectionIcon = () => {
+    switch (direction) {
+      case "N": return <MoveUp className="w-4 h-4" />;
+      case "NE": return <ArrowUpRight className="w-4 h-4" />;
+      case "E": return <MoveRight className="w-4 h-4" />;
+      case "SE": return <ArrowDownRight className="w-4 h-4" />;
+      case "S": return <MoveDown className="w-4 h-4" />;
+      case "SW": return <ArrowDownLeft className="w-4 h-4" />;
+      case "W": return <MoveLeft className="w-4 h-4" />;
+      case "NW": return <ArrowUpLeft className="w-4 h-4" />;
+      default: return <MoveUp className="w-4 h-4" />;
+    }
+  };
+
   return (
     <div
       className={cn(
-        "absolute w-[90%] h-[90%] transition-all duration-300 ease-out",
-        isActive && "ring-2 ring-white"
+        "absolute z-10 flex items-center justify-center",
+        "transition-all duration-300 ease-out"
       )}
       style={{
-        top: `calc(${position.y * 100}% + ${position.y * 0.5}px)`,
-        left: `calc(${position.x * 100}% + ${position.x * 0.5}px)`,
+        width: '90%',
+        height: '90%',
+        top: `calc(${position.y * 100}% + 5%)`,
+        left: `calc(${position.x * 100}% + 5%)`,
         zIndex: isActive ? 20 : 10,
       }}
     >
       <div
         className={cn(
-          "absolute inset-0 flex items-center justify-center",
-          "transition-transform duration-300",
+          "w-full h-full flex items-center justify-center",
+          "transition-transform duration-300 shadow-lg",
           carColorClasses[player.color as keyof typeof carColorClasses],
-          "rounded-md shadow-md",
-          getRotation(),
+          "rounded-md",
           animating && "scale-110",
-          isActive && "border-2 border-white"
+          isActive && "ring-2 ring-white"
         )}
       >
-        {/* Car shape */}
-        <div className="relative w-3/4 h-1/2">
-          {/* Car body */}
-          <div className="absolute inset-0 bg-current rounded-md" />
-          
-          {/* Car details */}
-          <div className="absolute top-1/4 bottom-1/4 left-1 right-1 bg-black/20 rounded-sm" />
-          
+        {/* Car shape with direction indicator */}
+        <div className="relative w-full h-full flex items-center justify-center">
           {/* Player number */}
-          <div className="absolute inset-0 flex items-center justify-center font-bold text-xs">
+          <div className="absolute inset-0 flex items-center justify-center font-bold text-lg">
             {player.id}
+          </div>
+          
+          {/* Direction indicator */}
+          <div className="absolute bottom-0.5 right-0.5">
+            {getDirectionIcon()}
           </div>
         </div>
       </div>
       
       {/* Momentum indicator */}
       {player.speed > 0 && (
-        <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 flex space-x-0.5">
+        <div className="absolute -bottom-3 left-1/2 transform -translate-x-1/2 flex space-x-1">
           {Array.from({ length: player.speed }).map((_, i) => (
             <div 
               key={i} 
               className={cn(
-                "w-1 h-1 rounded-full",
+                "w-1.5 h-1.5 rounded-full",
                 carColorClasses[player.color as keyof typeof carColorClasses]
               )}
             ></div>

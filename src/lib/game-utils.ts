@@ -24,7 +24,6 @@ export function getNextPosition(position: Position, direction: Direction): Posit
 // Get valid moves based on momentum rules
 export function getValidMoves(player: Player, boardSize: number): Position[] {
   const currentPos = player.position;
-  const currentDir = player.direction;
   const currentSpeed = player.speed;
 
   // If player has no speed, they can move to any adjacent tile
@@ -32,28 +31,24 @@ export function getValidMoves(player: Player, boardSize: number): Position[] {
     return getAllAdjacentPositions(currentPos, boardSize);
   }
 
-  // Get the momentum vector based on current direction
-  const validMoves: Position[] = [];
-
-  // Player must maintain momentum direction or make small adjustment
-  const directionsToCheck: Direction[] = getAdjacentDirections(currentDir);
+  // Calculate the momentum position (where player would go if they maintained same speed/direction)
+  const momentumPos = calculateMomentumPosition(currentPos, player.direction, currentSpeed);
   
-  // Add the current direction (continuing momentum)
-  directionsToCheck.push(currentDir);
-
-  // Calculate positions based on speed and allowed directions
-  directionsToCheck.forEach(dir => {
-    const newPos = moveWithSpeed(currentPos, dir, currentSpeed);
-    if (isValidPosition(newPos, boardSize)) {
-      validMoves.push(newPos);
-    }
-  });
-
+  // Add the momentum position (continuing with same direction/speed)
+  const validMoves: Position[] = [];
+  if (isValidPosition(momentumPos, boardSize)) {
+    validMoves.push(momentumPos);
+  }
+  
+  // Add the 8 positions immediately around the momentum position (small adjustments)
+  const adjustedMoves = getAllAdjacentPositions(momentumPos, boardSize);
+  validMoves.push(...adjustedMoves);
+  
   return validMoves;
 }
 
-// Get positions by moving with current speed in a direction
-function moveWithSpeed(position: Position, direction: Direction, speed: number): Position {
+// Calculate the momentum position (where you would go if you maintained same direction/speed)
+function calculateMomentumPosition(position: Position, direction: Direction, speed: number): Position {
   const directionVectors: Record<Direction, [number, number]> = {
     N: [0, -1],
     NE: [1, -1],
@@ -130,12 +125,8 @@ export function getNewDirection(from: Position, to: Position): Direction {
 
 // Calculate speed based on movement
 export function calculateNewSpeed(player: Player, newPosition: Position): number {
-  // Calculate distance moved
-  const dx = newPosition.x - player.position.x;
-  const dy = newPosition.y - player.position.y;
-  
-  // Calculate Euclidean distance (rounded to nearest integer)
-  return Math.round(Math.sqrt(dx * dx + dy * dy));
+  // We now preserve the current speed when moving to a tile near the momentum position
+  return player.speed;
 }
 
 // Check if there is a slipstream boost available
