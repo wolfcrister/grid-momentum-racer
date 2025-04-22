@@ -57,21 +57,19 @@ function getFinishLine(): Position[] {
   return verticalLine(finishLineX, padding, padding + trackWidth - 1); // y=1..4
 }
 
-// Checkpoint A (right straight, 1/3 lap after finish)
-const checkpointAX = maxX - Math.floor(trackWidth / 2); // close to outer right track edge
-const checkpointA = verticalLine(checkpointAX, minY, minY + trackWidth - 1); // y=1..4 (track width)
+// --- Checkpoint A: vertical line from (14,15) to (14,18) ---
+const checkpointA = verticalLine(14, 15, 18);
 
-// Checkpoint B (bottom straight, 2/3 lap after finish)
-const checkpointBY = maxY - Math.floor(trackWidth / 2); // y near outer bottom
-const checkpointB = horizontalLine(checkpointBY, minX, maxX); // x=1..18, spans full track
+// --- Checkpoint B: horizontal line from (1,11) to (1,14) ---
+const checkpointB = horizontalLine(11, 1, 14);
 
-// The checkpoints array now only includes A then B, in lap order
+// Checkpoints, in lap order (A then B)
 const ovalCheckpoints = [
   ...checkpointA,
   ...checkpointB,
 ];
 
-// Finish line
+// Finish line (unchanged)
 const finishLineOval = getFinishLine();
 
 // Set starting positions on the top straight, just behind the finish line
@@ -88,7 +86,7 @@ const ovalStartPositions = Array(numberOfStartingPositions)
 export const tracks = {
   oval: {
     size: 20,
-    checkpoints: ovalCheckpoints, // Now just 2 checkpoint lines
+    checkpoints: ovalCheckpoints,
     finishLine: finishLineOval,
     startPositions: ovalStartPositions,
     trackTiles: ovalTrackTiles,
