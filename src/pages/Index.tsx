@@ -1,8 +1,8 @@
-
 import React, { useState, useEffect } from "react";
 import { GameBoard } from "@/components/GameBoard";
 import { GameControls } from "@/components/GameControls";
 import { GameStatus } from "@/components/GameStatus";
+import { MoveLog, MoveLogEntry } from "@/components/MoveLog";
 import { 
   Player, 
   Position, 
@@ -38,6 +38,7 @@ const Index = () => {
   const [validMoves, setValidMoves] = useState<Position[]>([]);
   const [gameMode, setGameMode] = useState<GameMode>("turn-based");
   const [programmedMoves, setProgrammedMoves] = useState<Record<number, Position>>({});
+  const [moveLog, setMoveLog] = useState<MoveLogEntry[]>([]);
 
   // Initialize game
   useEffect(() => {
@@ -114,11 +115,12 @@ const Index = () => {
       const updatedPlayers = [...prevPlayers];
       const player = { ...updatedPlayers[playerIndex] };
 
-      // Save the last position for true momentum calculation!
-      (player as any).lastPosition = { ...player.position }; // store deep copy
+      // Save the last position for momentum calculation
+      const lastPosition = { ...player.position };
 
       // Calculate new direction and speed
       const newDirection = getNewDirection(player.position, newPosition);
+      const oldSpeed = player.speed;
       const newSpeed = calculateNewSpeed(player, newPosition);
 
       // Check for crash
@@ -137,6 +139,23 @@ const Index = () => {
       player.position = newPosition;
       player.direction = newDirection;
       player.speed = isCrashed ? 0 : newSpeed + speedBonus;
+
+      // Record the move in the log
+      const speedChange = (player.speed - oldSpeed);
+      setMoveLog(prev => [
+        ...prev,
+        {
+          playerId: player.id,
+          playerColor: player.color,
+          from: lastPosition,
+          to: newPosition,
+          round: currentRound,
+          speedChange: speedChange
+        }
+      ]);
+
+      // Store the last position for true momentum calculation!
+      (player as any).lastPosition = lastPosition;
 
       // Check if hit checkpoint (only if not crashed)
       if (!isCrashed && checkCheckpoint(newPosition, track.checkpoints)) {
@@ -198,6 +217,7 @@ const Index = () => {
     setGameStarted(false);
     setProgrammedMoves({});
     setWinner(null);
+    setMoveLog([]);
   };
 
   // Start screen
@@ -312,6 +332,8 @@ const Index = () => {
               checkpoints={track.checkpoints}
               finishLine={track.finishLine}
             />
+            
+            <MoveLog moves={moveLog} maxEntries={20} />
           </div>
           
           <aside>
