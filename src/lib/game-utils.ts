@@ -21,56 +21,92 @@ export function getNextPosition(position: Position, direction: Direction): Posit
   };
 }
 
-// Get valid moves based on momentum rules
+// Get the last movement delta (dx, dy) based on previous and current positions
+function getLastDelta(player: Player): [number, number] {
+  // If no previous move, fall back to direction/speed conversion for first move
+  if (!("lastPosition" in player) || !player["lastPosition"]) {
+    const directionVectors: Record<Direction, [number, number]> = {
+      N: [0, -1],
+      NE: [1, -1],
+      E: [1, 0],
+      SE: [1, 1],
+      S: [0, 1],
+      SW: [-1, 1],
+      W: [-1, 0],
+      NW: [-1, -1],
+    };
+    return directionVectors[player.direction];
+  }
+  const prev = (player as any).lastPosition as Position;
+  return [player.position.x - prev.x, player.position.y - prev.y];
+}
+
+// Get valid moves based on true momentum rules (vector-based)
 export function getValidMoves(player: Player, boardSize: number): Position[] {
   if (player.crashed) return [];
   // Get the track layout from the imported tracks
   const trackLayout = tracks.oval; // always oval for now—could refactor for trackType
   const currentPos = player.position;
-  const currentSpeed = player.speed;
-  const currentDirection = player.direction;
 
-  // If player has no speed, can move to any adjacent tile ON THE TRACK
-  if (currentSpeed === 0) {
+  // ---- Case 1: Speed is zero -> can move to any adjacent tile ON TRACK ----
+  if (player.speed === 0) {
     return getAllAdjacentPositions(currentPos, boardSize).filter(pos => 
       trackLayout.trackTiles.some(tt => tt.x === pos.x && tt.y === pos.y)
     );
   }
 
-  // Calculate the momentum position (continuing with same direction/speed)
-  const momentumPos = calculateMomentumPosition(currentPos, currentDirection, currentSpeed);
-  
-  // Get positions that would represent accelerating (speed + 1)
-  const acceleratedPos = calculateMomentumPosition(currentPos, currentDirection, currentSpeed + 1);
-  
+  // ---- Case 2: Use the last movement vector as momentum ----
+  // Infer last movement vector (dx, dy)
+  const [dx, dy] = getLastDelta(player);
+
+  // No movement, so no momentum
+  if (dx === 0 && dy === 0) {
+    return getAllAdjacentPositions(currentPos, boardSize).filter(pos =>
+      trackLayout.trackTiles.some(tt => tt.x === pos.x && tt.y === pos.y)
+    );
+  }
+
+  // Pure momentum move: continue by (dx, dy)
+  const momentumPos = { x: currentPos.x + dx, y: currentPos.y + dy };
+
+  // Accelerate move: (dx, dy) + step in same direction
+  // (A step in the same direction means scale up by +1: (dx, dy) -> (dx + sign(dx), dy + sign(dy)))
+  function sign(n: number) {
+    if (n > 0) return 1;
+    if (n < 0) return -1;
+    return 0;
+  }
+  const accPos = { x: currentPos.x + dx + sign(dx), y: currentPos.y + dy + sign(dy) };
+
   const validMoves: Position[] = [];
 
-  // If the momentum position is in-bounds AND on track, offer it
+  // Only count momentum if it's in-bounds and on track
   if (
     isValidPosition(momentumPos, boardSize) &&
-    trackLayout.trackTiles.some(tt => tt.x === momentumPos.x && tt.y === momentumPos.y)
+    trackLayout.trackTiles.some(t => t.x === momentumPos.x && t.y === momentumPos.y)
   ) {
     validMoves.push(momentumPos);
   }
-  
-  // If the accelerated position is in-bounds AND on track, offer it for increased speed
+
+  // Same for acceleration move
   if (
-    isValidPosition(acceleratedPos, boardSize) &&
-    trackLayout.trackTiles.some(tt => tt.x === acceleratedPos.x && tt.y === acceleratedPos.y)
+    isValidPosition(accPos, boardSize) &&
+    trackLayout.trackTiles.some(t => t.x === accPos.x && t.y === accPos.y)
   ) {
-    validMoves.push(acceleratedPos);
+    validMoves.push(accPos);
   }
-  
-  // Always allow adjacent positions to the CURRENT position that are on track
-  const possibleMoves = getAllAdjacentPositions(currentPos, boardSize)
-    .filter(pos => trackLayout.trackTiles.some(tt => tt.x === pos.x && tt.y === pos.y));
-  
-  for (const pos of possibleMoves) {
+
+  // Always allow adjacent tiles for tactical play (if on track and not duplicate)
+  const adjMoves = getAllAdjacentPositions(currentPos, boardSize).filter(pos =>
+    trackLayout.trackTiles.some(tt => tt.x === pos.x && tt.y === pos.y)
+  );
+
+  for (const pos of adjMoves) {
     if (!validMoves.some(m => m.x === pos.x && m.y === pos.y)) {
       validMoves.push(pos);
     }
   }
-  
+
   return validMoves;
 }
 

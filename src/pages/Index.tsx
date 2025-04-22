@@ -113,15 +113,18 @@ const Index = () => {
     setPlayers(prevPlayers => {
       const updatedPlayers = [...prevPlayers];
       const player = { ...updatedPlayers[playerIndex] };
-      
+
+      // Save the last position for true momentum calculation!
+      (player as any).lastPosition = { ...player.position }; // store deep copy
+
       // Calculate new direction and speed
       const newDirection = getNewDirection(player.position, newPosition);
       const newSpeed = calculateNewSpeed(player, newPosition);
-      
+
       // Check for crash
       const isCrashed = checkCrash(newPosition);
       player.crashed = isCrashed;
-      
+
       // Check for slipstream (only if not crashed)
       let speedBonus = 0;
       if (!isCrashed) {
@@ -129,26 +132,26 @@ const Index = () => {
         const hasSlipstream = checkSlipstream(player, otherPlayers, newPosition);
         speedBonus = hasSlipstream ? 1 : 0;
       }
-      
+
       // Update player position and speed
       player.position = newPosition;
       player.direction = newDirection;
       player.speed = isCrashed ? 0 : newSpeed + speedBonus;
-      
+
       // Check if hit checkpoint (only if not crashed)
       if (!isCrashed && checkCheckpoint(newPosition, track.checkpoints)) {
         if (player.checkpoints < player.totalCheckpoints) {
           player.checkpoints += 1;
         }
       }
-      
+
       // Check if reached finish line (only if not crashed)
-      if (!isCrashed && checkFinishLine(newPosition, track.finishLine) && 
-          player.checkpoints === player.totalCheckpoints) {
+      if (!isCrashed && checkFinishLine(newPosition, track.finishLine) &&
+        player.checkpoints === player.totalCheckpoints) {
         player.isFinished = true;
         setWinner(player);
       }
-      
+
       updatedPlayers[playerIndex] = player;
       return updatedPlayers;
     });
