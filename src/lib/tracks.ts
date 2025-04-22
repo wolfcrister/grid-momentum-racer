@@ -1,3 +1,4 @@
+
 import { Position, Direction } from "@/types/game";
 
 // Helper to generate all positions across a certain X between min/max Y (inclusive)
@@ -47,9 +48,9 @@ const padding = 1;
 
 // Create finish line as a horizontal line across the top straight
 function getFinishLine(): Position[] {
-  // Place the finish line at the top straight, crossing all lanes
+  // Create a finish line that spans from the left edge to the right edge of the top straight
   const finishLineY = padding + Math.floor(trackWidth / 2); // Middle of the top straight
-  return horizontalLine(finishLineY, padding, padding + trackWidth - 1);
+  return horizontalLine(finishLineY, padding, size - padding - 1);
 }
 
 // Get the finish line positions
@@ -68,17 +69,14 @@ const ovalStartPositions = Array(numberOfStartingPositions)
 
 // Create checkpoint positions as lines crossing each straight section
 const ovalCheckpoints = [
-  // Top straight (finish line) - using the finish line positions
-  ...finishLineOval,
+  // Right straight - vertical line crossing from outer to inner edge
+  ...verticalLine(size - padding - Math.floor(trackWidth / 2), padding, size - padding - 1),
   
-  // Right straight - vertical line crossing the track width
-  ...verticalLine(size - padding - Math.floor(trackWidth / 2), padding, padding + trackWidth - 1),
+  // Bottom straight - horizontal line crossing from left to right edge
+  ...horizontalLine(size - padding - Math.floor(trackWidth / 2), padding, size - padding - 1),
   
-  // Bottom straight - horizontal line crossing the track width
-  ...horizontalLine(size - padding - Math.floor(trackWidth / 2), size - padding - trackWidth, size - padding - 1),
-  
-  // Left straight - vertical line crossing the track width
-  ...verticalLine(padding + Math.floor(trackWidth / 2), size - padding - trackWidth, size - padding - 1)
+  // Left straight - vertical line crossing from outer to inner edge
+  ...verticalLine(padding + Math.floor(trackWidth / 2), padding, size - padding - 1)
 ];
 
 export const tracks = {
@@ -111,3 +109,4 @@ export const tracks = {
     trackTiles: [], // TODO: implement for figure8 if needed!
   },
 };
+
