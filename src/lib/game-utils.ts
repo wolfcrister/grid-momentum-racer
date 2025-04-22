@@ -196,22 +196,26 @@ export function checkFinishLine(
 // Track definitions
 export const tracks = {
   oval: {
-    size: 10,
+    size: 20,
     checkpoints: [
-      { x: 5, y: 1 },
-      { x: 8, y: 5 },
-      { x: 5, y: 8 }
+      { x: 5, y: 1 },  // Top checkpoint
+      { x: 18, y: 10 }, // Right checkpoint
+      { x: 10, y: 18 }, // Bottom checkpoint
+      { x: 1, y: 10 }   // Left checkpoint
     ],
     finishLine: [
-      { x: 2, y: 5 },
-      { x: 1, y: 5 }
+      { x: 1, y: 5 },
+      { x: 1, y: 6 },
+      { x: 1, y: 7 },
+      { x: 1, y: 8 }
     ],
     startPositions: [
-      { position: { x: 3, y: 5 }, direction: "W" as Direction },
-      { position: { x: 3, y: 6 }, direction: "W" as Direction },
-      { position: { x: 4, y: 5 }, direction: "W" as Direction },
-      { position: { x: 4, y: 6 }, direction: "W" as Direction }
-    ]
+      { position: { x: 2, y: 5 }, direction: "E" as Direction },
+      { position: { x: 2, y: 6 }, direction: "E" as Direction },
+      { position: { x: 2, y: 7 }, direction: "E" as Direction },
+      { position: { x: 2, y: 8 }, direction: "E" as Direction }
+    ],
+    trackTiles: generateTrackTiles()
   },
   figure8: {
     size: 12,
@@ -233,3 +237,37 @@ export const tracks = {
     ]
   }
 };
+
+// Generate the track tiles for a 20x20 board with a 4-tile wide track
+function generateTrackTiles(): Position[] {
+  const trackTiles: Position[] = [];
+  const size = 20;
+  const trackWidth = 4;
+  const padding = 1;
+  
+  // Add outer track tiles
+  for (let x = padding; x < size - padding; x++) {
+    // Top part of track
+    for (let y = padding; y < padding + trackWidth; y++) {
+      trackTiles.push({ x, y });
+    }
+    // Bottom part of track
+    for (let y = size - padding - trackWidth; y < size - padding; y++) {
+      trackTiles.push({ x, y });
+    }
+  }
+  
+  // Add side track tiles
+  for (let y = padding; y < size - padding; y++) {
+    // Left part of track
+    for (let x = padding; x < padding + trackWidth; x++) {
+      trackTiles.push({ x, y });
+    }
+    // Right part of track
+    for (let x = size - padding - trackWidth; x < size - padding; x++) {
+      trackTiles.push({ x, y });
+    }
+  }
+  
+  return trackTiles;
+}

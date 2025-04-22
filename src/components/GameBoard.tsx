@@ -1,4 +1,3 @@
-
 import React from "react";
 import { cn } from "@/lib/utils";
 import { GridTile } from "./GridTile";
@@ -30,8 +29,9 @@ export function GameBoard({
     const isCheckpoint = checkpoints.some(cp => cp.x === x && cp.y === y);
     const isFinish = finishLine.some(fl => fl.x === x && fl.y === y);
     const isValidMove = validMoves.some(vm => vm.x === x && vm.y === y);
+    const isTrackTile = tracks.oval.trackTiles.some(tt => tt.x === x && tt.y === y);
     
-    // Calculate if this is the momentum position (where car would go if continuing same direction/speed)
+    // Calculate momentum position
     const player = players[currentPlayer];
     const isMomentumPosition = player.speed > 0 && 
       validMoves.length > 0 &&
@@ -48,6 +48,7 @@ export function GameBoard({
         type={tileType}
         isValidMove={isValidMove}
         isMomentumPosition={isMomentumPosition}
+        isTrackTile={isTrackTile}
         onClick={() => isValidMove && onMove(position)}
       />
     );
@@ -63,7 +64,7 @@ export function GameBoard({
         style={{
           gridTemplateColumns: `repeat(${size}, 1fr)`,
           aspectRatio: "1/1",
-          position: "relative" // Add relative positioning to container
+          position: "relative"
         }}
       >
         {Array.from({ length: size * size }).map((_, index) => {
@@ -72,7 +73,6 @@ export function GameBoard({
           return renderTile(x, y);
         })}
 
-        {/* Player cars with updated positioning */}
         {players.map((player, index) => (
           <Car 
             key={player.id}

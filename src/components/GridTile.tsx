@@ -7,16 +7,25 @@ interface GridTileProps {
   type: "track" | "checkpoint" | "finish";
   isValidMove?: boolean;
   isMomentumPosition?: boolean;
+  isTrackTile?: boolean;
   onClick?: () => void;
 }
 
-export function GridTile({ position, type, isValidMove, isMomentumPosition, onClick }: GridTileProps) {
+export function GridTile({ 
+  position, 
+  type, 
+  isValidMove, 
+  isMomentumPosition, 
+  isTrackTile,
+  onClick 
+}: GridTileProps) {
   return (
     <div
       className={cn(
         "aspect-square relative transition-all duration-200",
         "flex items-center justify-center",
-        type === "track" && "bg-card",
+        !isTrackTile && "bg-muted/50",
+        isTrackTile && "bg-card",
         type === "checkpoint" && "bg-secondary/30",
         type === "finish" && "bg-accent checkered",
         isValidMove && "cursor-pointer ring-2 ring-primary ring-opacity-70",
