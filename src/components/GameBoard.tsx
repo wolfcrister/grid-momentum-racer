@@ -1,9 +1,10 @@
+
 import React from "react";
 import { cn } from "@/lib/utils";
 import { GridTile } from "./GridTile";
 import { Car } from "./Car";
 import { Position, Direction, Player } from "@/types/game";
-import { MoveRight } from "lucide-react";
+import { tracks } from "@/lib/game-utils";
 
 interface GameBoardProps {
   size: number;
