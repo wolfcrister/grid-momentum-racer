@@ -66,44 +66,21 @@ export function getValidMoves(player: Player, boardSize: number): Position[] {
     );
   }
 
-  // Pure momentum move: continue by (dx, dy)
-  const momentumPos = { x: currentPos.x + dx, y: currentPos.y + dy };
-
-  // Accelerate move: (dx, dy) + step in same direction
-  // (A step in the same direction means scale up by +1: (dx, dy) -> (dx + sign(dx), dy + sign(dy)))
-  function sign(n: number) {
-    if (n > 0) return 1;
-    if (n < 0) return -1;
-    return 0;
-  }
-  const accPos = { x: currentPos.x + dx + sign(dx), y: currentPos.y + dy + sign(dy) };
-
+  // Correct 2D vector momentum: allowed are (dx+sdx, dy+sdy), for sdx/sdy in [-1,0,1]
   const validMoves: Position[] = [];
-
-  // Only count momentum if it's in-bounds and on track
-  if (
-    isValidPosition(momentumPos, boardSize) &&
-    trackLayout.trackTiles.some(t => t.x === momentumPos.x && t.y === momentumPos.y)
-  ) {
-    validMoves.push(momentumPos);
-  }
-
-  // Same for acceleration move
-  if (
-    isValidPosition(accPos, boardSize) &&
-    trackLayout.trackTiles.some(t => t.x === accPos.x && t.y === accPos.y)
-  ) {
-    validMoves.push(accPos);
-  }
-
-  // Always allow adjacent tiles for tactical play (if on track and not duplicate)
-  const adjMoves = getAllAdjacentPositions(currentPos, boardSize).filter(pos =>
-    trackLayout.trackTiles.some(tt => tt.x === pos.x && tt.y === pos.y)
-  );
-
-  for (const pos of adjMoves) {
-    if (!validMoves.some(m => m.x === pos.x && m.y === pos.y)) {
-      validMoves.push(pos);
+  for (let sdx = -1; sdx <= 1; sdx++) {
+    for (let sdy = -1; sdy <= 1; sdy++) {
+      const newDx = dx + sdx;
+      const newDy = dy + sdy;
+      // Don't allow no movement at all:
+      if (newDx === 0 && newDy === 0) continue;
+      const nextPos = { x: currentPos.x + newDx, y: currentPos.y + newDy };
+      if (
+        isValidPosition(nextPos, boardSize) &&
+        trackLayout.trackTiles.some(tt => tt.x === nextPos.x && tt.y === nextPos.y)
+      ) {
+        validMoves.push(nextPos);
+      }
     }
   }
 
