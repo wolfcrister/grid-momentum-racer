@@ -1,3 +1,4 @@
+
 import { Position, Direction } from "@/types/game";
 
 // Helper to generate all positions across a certain X between min/max Y (inclusive)
@@ -41,7 +42,6 @@ function generateOvalTrackTiles() {
 const ovalTrackTiles = generateOvalTrackTiles();
 
 // --- Top straight Y and X ranges ---
-
 const size = 20;
 const trackWidth = 4;
 const padding = 1;
@@ -78,14 +78,20 @@ const ovalStartPositions = Array(numberOfStartingPositions)
     direction: "E" as Direction
   }));
 
-// Define checkpoints: first checkpoint is the finish line, then side/bottom corners
+// Updated checkpoint positions based on the image
+// Use specific positions matching the blue tiles in the image
 const ovalCheckpoints = [
-  // All finish line tiles (as a checkpoint)
-  ...finishLineOval,
-  // Others: right, bottom, left (middle of each straight)
-  { x: xMax, y: Math.floor(size / 2) },   // Right
-  { x: Math.floor(size / 2), y: size - padding - 1 }, // Bottom
-  { x: xMin, y: Math.floor(size / 2) },   // Left
+  // Left side checkpoint (corner)
+  { x: 4, y: 10 },
+  
+  // Bottom checkpoint
+  { x: 10, y: 16 }, 
+  
+  // Right side checkpoint
+  { x: 16, y: 10 },
+  
+  // Start/Finish line (just one position to represent)
+  { x: 10, y: 2 }
 ];
 
 export const tracks = {
