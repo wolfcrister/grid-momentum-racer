@@ -57,7 +57,8 @@ const Index = () => {
         color: playerColors[i] as PlayerColor,
         checkpoints: 0,
         totalCheckpoints: newTrack.checkpoints.length,
-        isFinished: false
+        isFinished: false,
+        crashed: false  // Add the new crashed property
       });
     }
     
