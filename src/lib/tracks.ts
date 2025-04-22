@@ -85,7 +85,6 @@ export const tracks = {
     finishLine: finishLineOval,
     startPositions: ovalStartPositions,
     trackTiles: ovalTrackTiles,
-    // For future optional export: checkpointA, checkpointB
   },
 
   figure8: {
@@ -106,6 +105,6 @@ export const tracks = {
       { position: { x: 8, y: 1 }, direction: "W" as Direction },
       { position: { x: 8, y: 2 }, direction: "W" as Direction },
     ],
-    trackTiles: [], // TODO: implement for figure8 if needed!
+    trackTiles: [], // Add an empty array for figure8 for now
   },
 };
