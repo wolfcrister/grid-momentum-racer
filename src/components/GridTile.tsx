@@ -1,0 +1,38 @@
+
+import { cn } from "@/lib/utils";
+import { Position } from "@/types/game";
+
+interface GridTileProps {
+  position: Position;
+  type: "track" | "checkpoint" | "finish";
+  isValidMove?: boolean;
+  onClick?: () => void;
+}
+
+export function GridTile({ position, type, isValidMove, onClick }: GridTileProps) {
+  return (
+    <div
+      className={cn(
+        "aspect-square relative transition-all duration-200",
+        "flex items-center justify-center",
+        type === "track" && "bg-card",
+        type === "checkpoint" && "bg-secondary/30",
+        type === "finish" && "bg-accent checkered",
+        isValidMove && "cursor-pointer ring-2 ring-primary ring-opacity-70 bg-primary/10",
+        isValidMove && "after:absolute after:inset-0 after:bg-primary/10 after:animate-pulse"
+      )}
+      style={{
+        gridColumn: position.x + 1,
+        gridRow: position.y + 1,
+      }}
+      onClick={onClick}
+      data-position={`${position.x},${position.y}`}
+    >
+      {isValidMove && (
+        <div className="absolute inset-0 flex items-center justify-center opacity-70">
+          <div className="w-2 h-2 bg-primary rounded-full"></div>
+        </div>
+      )}
+    </div>
+  );
+}
