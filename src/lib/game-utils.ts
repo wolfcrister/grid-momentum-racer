@@ -14,7 +14,8 @@ import {
 // Import and re-export functions from position-utils.ts
 import {
   isValidPosition,
-  getAllAdjacentPositions
+  getAllAdjacentPositions,
+  doesSegmentPassThroughTile
 } from './position-utils';
 
 // Import and re-export functions from gameplay-utils.ts
@@ -43,7 +44,8 @@ export {
   // From position-utils.ts
   isValidPosition,
   getAllAdjacentPositions,
-  
+  doesSegmentPassThroughTile,
+
   // From gameplay-utils.ts
   getValidMoves,
   checkSlipstream,
