@@ -48,9 +48,9 @@ const padding = 1;
 
 // Create finish line as a horizontal line across the top straight
 function getFinishLine(): Position[] {
-  // Create a finish line that spans across the entire width of the top straight
+  // Create a finish line that spans the entire track width
   const finishLineY = padding + Math.floor(trackWidth / 2); // Middle of the top straight
-  return horizontalLine(finishLineY, padding, padding + trackWidth - 1);
+  return horizontalLine(finishLineY, padding, size - padding - 1); // From left to right edge
 }
 
 // Get the finish line positions
@@ -70,13 +70,13 @@ const ovalStartPositions = Array(numberOfStartingPositions)
 // Create checkpoint positions as lines crossing each straight section
 const ovalCheckpoints = [
   // Right straight - vertical line crossing the entire width of the track
-  ...verticalLine(size - padding - Math.floor(trackWidth / 2), padding, padding + trackWidth - 1),
+  ...verticalLine(size - padding - Math.floor(trackWidth / 2), padding, size - padding - 1),
   
   // Bottom straight - horizontal line crossing the entire width of the track
-  ...horizontalLine(size - padding - Math.floor(trackWidth / 2), size - padding - trackWidth, size - padding - 1),
+  ...horizontalLine(size - padding - Math.floor(trackWidth / 2), padding, size - padding - 1),
   
   // Left straight - vertical line crossing the entire width of the track
-  ...verticalLine(padding + Math.floor(trackWidth / 2), size - padding - trackWidth, size - padding - 1)
+  ...verticalLine(padding + Math.floor(trackWidth / 2), padding, size - padding - 1)
 ];
 
 export const tracks = {
