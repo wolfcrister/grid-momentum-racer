@@ -1,5 +1,4 @@
 import { Position, Direction, Player } from "@/types/game";
-import { tracks } from "./tracks";
 
 // Get the next position based on current position and direction
 export function getNextPosition(position: Position, direction: Direction): Position {
@@ -24,7 +23,7 @@ export function getNextPosition(position: Position, direction: Direction): Posit
 // Get valid moves based on momentum rules
 export function getValidMoves(player: Player, boardSize: number): Position[] {
   if (player.crashed) return [];
-  const trackLayout = tracks.oval; // always oval for now—could refactor for trackType
+  const trackLayout = require("@/lib/tracks").tracks.oval;
   const currentPos = player.position;
   const currentSpeed = player.speed;
   const currentDirection = player.direction;
@@ -206,5 +205,6 @@ export function checkFinishLine(
 // Add a new function to check if a move would result in a crash
 export function checkCrash(position: Position): boolean {
   // Only crash if the target position is not on track in the currently selected track  
-  return !tracks.oval.trackTiles.some(tt => tt.x === position.x && tt.y === position.y);
+  const trackTiles = require("@/lib/tracks").tracks.oval.trackTiles;
+  return !trackTiles.some(tt => tt.x === position.x && tt.y === position.y);
 }

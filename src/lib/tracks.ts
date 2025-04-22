@@ -1,4 +1,3 @@
-
 import { Position, Direction } from "@/types/game";
 
 // Helper to generate all positions across a certain X between min/max Y (inclusive)
@@ -41,13 +40,12 @@ function generateOvalTrackTiles(): Position[] {
 
 const ovalTrackTiles = generateOvalTrackTiles();
 
-// The finish line truly "crosses" the course: every tile on X=4 and X=5 that is on the track
-const finishLineOval: Position[] = [
-  ...ovalTrackTiles.filter(p => p.x === 4),
-  ...ovalTrackTiles.filter(p => p.x === 5),
-];
-
-// Example: could do horizontal as well (Y=4 and Y=5), but this matches common oval start/finish
+// ENHANCED: The finish line will "cross" the track using the vertical (X=4 and X=5), but only where those tiles are part of the TRACK (so a true stripe across, not just the inside/outside line)
+// It runs the *full width of the track* (i.e., across all track Y for X=4 and X=5)
+function getFinishLineStripe(trackTiles: Position[], xVals: number[]): Position[] {
+  return trackTiles.filter(p => xVals.includes(p.x));
+}
+const finishLineOval = getFinishLineStripe(ovalTrackTiles, [4, 5]);
 
 export const tracks = {
   oval: {

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { GameBoard } from "@/components/GameBoard";
 import { GameControls } from "@/components/GameControls";
@@ -17,8 +18,7 @@ import {
   checkSlipstream,
   checkCheckpoint,
   checkFinishLine,
-  checkCrash,
-  tracks
+  checkCrash
 } from "@/lib/game-utils";
 import { Button } from "@/components/ui/button";
 import { tracks } from "@/lib/tracks";
