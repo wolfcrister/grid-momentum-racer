@@ -78,20 +78,20 @@ const ovalStartPositions = Array(numberOfStartingPositions)
     direction: "E" as Direction
   }));
 
-// Updated checkpoint positions based on the image
-// Use specific positions matching the blue tiles in the image
+// Create checkpoint positions across each straight section
+// Each checkpoint is a line of positions crossing the track
 const ovalCheckpoints = [
-  // Left side checkpoint (corner)
-  { x: 4, y: 10 },
+  // Top straight (finish line) - already defined as finishLineOval, use a representative position
+  { x: 10, y: 2 },
   
-  // Bottom checkpoint
-  { x: 10, y: 16 }, 
+  // Right straight - vertical line across the track at x=16
+  ...verticalLine(16, padding, padding + trackWidth - 1),
   
-  // Right side checkpoint
-  { x: 16, y: 10 },
+  // Bottom straight - horizontal line across the track at y=16
+  ...horizontalLine(16, padding, size - padding - 1),
   
-  // Start/Finish line (just one position to represent)
-  { x: 10, y: 2 }
+  // Left straight - vertical line across the track at x=4
+  ...verticalLine(4, padding, size - padding - 1)
 ];
 
 export const tracks = {
