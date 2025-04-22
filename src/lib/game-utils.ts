@@ -38,19 +38,30 @@ export function getValidMoves(player: Player, boardSize: number): Position[] {
   // Calculate the momentum position (continuing with same direction and speed)
   const momentumPos = calculateMomentumPosition(currentPos, currentDirection, currentSpeed);
   
+  // Instead of defaulting to "crash" if momentum is not on track,
+  // always allow the player to choose any adjacent tile to momentumPos that is on track.
   const validMoves: Position[] = [];
-  
-  // Add the momentum position if it's valid and on track
-  if (isValidPosition(momentumPos, boardSize) && 
-      tracks.oval.trackTiles.some(tt => tt.x === momentumPos.x && tt.y === momentumPos.y)) {
+
+  // Add momentum position if it's valid and on track
+  if (
+    isValidPosition(momentumPos, boardSize) &&
+    tracks.oval.trackTiles.some(tt => tt.x === momentumPos.x && tt.y === momentumPos.y)
+  ) {
     validMoves.push(momentumPos);
   }
-  
-  // Add the positions around the momentum position (adjustments), but only if they're on track
+
+  // Add all adjacent positions to the momentum position (potential adjustments)
   const adjacentToMomentum = getAllAdjacentPositions(momentumPos, boardSize)
     .filter(pos => tracks.oval.trackTiles.some(tt => tt.x === pos.x && tt.y === pos.y));
-  validMoves.push(...adjacentToMomentum);
-  
+
+  // Allow all positions that are on the track (possibly including the momentum position again, but that's ok)
+  for (const pos of adjacentToMomentum) {
+    // Don't add duplicates
+    if (!validMoves.some(m => m.x === pos.x && m.y === pos.y)) {
+      validMoves.push(pos);
+    }
+  }
+
   return validMoves;
 }
 
@@ -209,12 +220,11 @@ export const tracks = {
       { x: 10, y: 18 }, // Bottom checkpoint
       { x: 1, y: 10 }   // Left checkpoint
     ],
-    finishLine: [
-      { x: 4, y: 4 },
-      { x: 4, y: 5 },
-      { x: 4, y: 6 },
-      { x: 4, y: 7 }
-    ],
+    // The finish line now crosses the course at x=4, for all y values that are on the track
+    finishLine: Array.from({length: 4}, (_, idx) => ({
+      x: 4,
+      y: 4 + idx // y values 4,5,6,7
+    })),
     startPositions: [
       { position: { x: 2, y: 5 }, direction: "E" as Direction },
       { position: { x: 2, y: 6 }, direction: "E" as Direction },
