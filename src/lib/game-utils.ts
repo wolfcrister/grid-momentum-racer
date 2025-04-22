@@ -1,4 +1,3 @@
-
 import { Position, Direction, Player } from "@/types/game";
 
 // Get the next position based on current position and direction
@@ -25,24 +24,26 @@ export function getNextPosition(position: Position, direction: Direction): Posit
 export function getValidMoves(player: Player, boardSize: number): Position[] {
   const currentPos = player.position;
   const currentSpeed = player.speed;
+  const currentDirection = player.direction;
 
   // If player has no speed, they can move to any adjacent tile
   if (currentSpeed === 0) {
     return getAllAdjacentPositions(currentPos, boardSize);
   }
 
-  // Calculate the momentum position (where player would go if they maintained same speed/direction)
-  const momentumPos = calculateMomentumPosition(currentPos, player.direction, currentSpeed);
+  // Calculate the momentum position (continuing with same direction and speed)
+  const momentumPos = calculateMomentumPosition(currentPos, currentDirection, currentSpeed);
   
-  // Add the momentum position (continuing with same direction/speed)
   const validMoves: Position[] = [];
+  
+  // Add the momentum position if it's valid
   if (isValidPosition(momentumPos, boardSize)) {
     validMoves.push(momentumPos);
   }
   
-  // Add the 8 positions immediately around the momentum position (small adjustments)
-  const adjustedMoves = getAllAdjacentPositions(momentumPos, boardSize);
-  validMoves.push(...adjustedMoves);
+  // Add the positions around the momentum position (adjustments)
+  const adjacentToMomentum = getAllAdjacentPositions(momentumPos, boardSize);
+  validMoves.push(...adjacentToMomentum);
   
   return validMoves;
 }
@@ -65,17 +66,6 @@ function calculateMomentumPosition(position: Position, direction: Direction, spe
     x: position.x + (dx * speed),
     y: position.y + (dy * speed),
   };
-}
-
-// Get directions adjacent to the current direction
-function getAdjacentDirections(direction: Direction): Direction[] {
-  const allDirections: Direction[] = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"];
-  const currentIndex = allDirections.indexOf(direction);
-  
-  const leftIndex = (currentIndex - 1 + 8) % 8;
-  const rightIndex = (currentIndex + 1) % 8;
-  
-  return [allDirections[leftIndex], allDirections[rightIndex]];
 }
 
 // Get all adjacent positions
@@ -125,8 +115,16 @@ export function getNewDirection(from: Position, to: Position): Direction {
 
 // Calculate speed based on movement
 export function calculateNewSpeed(player: Player, newPosition: Position): number {
-  // We now preserve the current speed when moving to a tile near the momentum position
-  return player.speed;
+  // Calculate the distance between the old and new positions
+  const dx = Math.abs(newPosition.x - player.position.x);
+  const dy = Math.abs(newPosition.y - player.position.y);
+  
+  // Get the maximum distance in any direction
+  // This represents the speed based on the movement
+  const distance = Math.max(dx, dy);
+  
+  // In grid racer, your speed is based on your previous move
+  return distance;
 }
 
 // Check if there is a slipstream boost available

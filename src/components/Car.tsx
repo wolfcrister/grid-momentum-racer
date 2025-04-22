@@ -69,16 +69,18 @@ export function Car({ player, position, direction, isActive }: CarProps) {
         "transition-all duration-300 ease-out"
       )}
       style={{
-        width: '90%',
-        height: '90%',
-        top: `calc(${position.y * 100}% + 5%)`,
-        left: `calc(${position.x * 100}% + 5%)`,
+        width: 'calc(100% / var(--grid-size))',
+        height: 'calc(100% / var(--grid-size))',
+        top: `calc(${position.y} * 100% / var(--grid-size))`,
+        left: `calc(${position.x} * 100% / var(--grid-size))`,
         zIndex: isActive ? 20 : 10,
-      }}
+        '--grid-size': 10, // Default size, will be overridden by CSS variables
+        transform: 'translate(0.5%, 0.5%)',
+      } as React.CSSProperties}
     >
       <div
         className={cn(
-          "w-full h-full flex items-center justify-center",
+          "w-[90%] h-[90%] flex items-center justify-center",
           "transition-transform duration-300 shadow-lg",
           carColorClasses[player.color as keyof typeof carColorClasses],
           "rounded-md",

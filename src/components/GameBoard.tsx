@@ -63,6 +63,7 @@ export function GameBoard({
         style={{
           gridTemplateColumns: `repeat(${size}, 1fr)`,
           aspectRatio: "1/1",
+          position: "relative" // Add relative positioning to container
         }}
       >
         {Array.from({ length: size * size }).map((_, index) => {
@@ -71,7 +72,7 @@ export function GameBoard({
           return renderTile(x, y);
         })}
 
-        {/* Render cars */}
+        {/* Player cars with updated positioning */}
         {players.map((player, index) => (
           <Car 
             key={player.id}
