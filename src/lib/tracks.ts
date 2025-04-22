@@ -1,3 +1,4 @@
+
 import { Position, Direction } from "@/types/game";
 
 // Helper to generate all positions across a certain X between min/max Y (inclusive)
@@ -8,8 +9,6 @@ function verticalLine(x: number, yStart: number, yEnd: number): Position[] {
   }
   return line;
 }
-
-// Helper to generate all positions across a certain Y between min/max X (inclusive)
 function horizontalLine(y: number, xStart: number, xEnd: number): Position[] {
   const line: Position[] = [];
   for (let x = xStart; x <= xEnd; x++) {
@@ -58,18 +57,16 @@ function getFinishLine(): Position[] {
 }
 
 // --- Checkpoint A: vertical line from (14,15) to (14,18) ---
-const checkpointA = verticalLine(14, 15, 18);
-
 // --- Checkpoint B: horizontal line from (1,11) to (4,11) ---
+const checkpointA = verticalLine(14, 15, 18);
 const checkpointB = horizontalLine(11, 1, 4);
 
-// Checkpoints, in lap order (A then B)
+// For unit checkpoint lines
 const ovalCheckpoints = [
-  ...checkpointA,
-  ...checkpointB,
+  checkpointA,
+  checkpointB,
 ];
 
-// Finish line (unchanged)
 const finishLineOval = getFinishLine();
 
 // Set starting positions ON the finish line tiles, facing south
@@ -81,7 +78,7 @@ const ovalStartPositions = finishLineOval.map(pos => ({
 export const tracks = {
   oval: {
     size: 20,
-    checkpoints: ovalCheckpoints,
+    checkpoints: ovalCheckpoints, // Array of unit checkpoint lines
     finishLine: finishLineOval,
     startPositions: ovalStartPositions,
     trackTiles: ovalTrackTiles,
@@ -90,10 +87,11 @@ export const tracks = {
   figure8: {
     size: 12,
     checkpoints: [
-      { x: 3, y: 3 },
-      { x: 9, y: 3 },
-      { x: 9, y: 9 },
-      { x: 3, y: 9 },
+      // Placeholders for unit-style checkpoint lines (could be refactored further if needed)
+      [{ x: 3, y: 3 }],
+      [{ x: 9, y: 3 }],
+      [{ x: 9, y: 9 }],
+      [{ x: 3, y: 9 }],
     ],
     finishLine: [
       { x: 6, y: 1 },
@@ -105,6 +103,6 @@ export const tracks = {
       { position: { x: 8, y: 1 }, direction: "W" as Direction },
       { position: { x: 8, y: 2 }, direction: "W" as Direction },
     ],
-    trackTiles: [], // Add an empty array for figure8 for now
+    trackTiles: [],
   },
 };

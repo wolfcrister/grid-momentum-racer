@@ -14,7 +14,8 @@ export type Player = {
   direction: Direction;
   speed: number;
   color: PlayerColor;
-  checkpoints: number;
+  // Track checkpoints as a set of line indices for the lap (not per tile)
+  checkpointsPassed: Set<number>;
   totalCheckpoints: number;
   isFinished: boolean;
   crashed: boolean;
@@ -24,7 +25,8 @@ export type GameMode = "turn-based" | "programming";
 
 export type Track = {
   size: number;
-  checkpoints: Position[];
+  // Store checkpoints as an array of unit checkpoint lines (each one is an array of tiles)
+  checkpoints: Position[][];
   finishLine: Position[];
   startPositions: Array<{
     position: Position;

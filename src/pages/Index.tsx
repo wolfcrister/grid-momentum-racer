@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { GameBoard } from "@/components/GameBoard";
 import { GameControls } from "@/components/GameControls";
@@ -16,8 +17,10 @@ import {
   getNewDirection, 
   calculateNewSpeed,
   checkSlipstream,
-  checkCheckpoint,
-  checkFinishLine,
+-  checkCheckpoint,
+-  checkFinishLine,
++  checkCheckpointCrossed,
++  checkFinishLineCrossed,
   checkCrash,
   distanceFromTrack,
   getReverseDirection
@@ -48,7 +51,7 @@ const Index = () => {
     
     const newTrack = tracks[trackType];
     setTrack(newTrack);
-    
+
     // Initialize players at starting positions
     const initialPlayers: Player[] = [];
     for (let i = 0; i < playerCount; i++) {
@@ -59,13 +62,17 @@ const Index = () => {
         direction: startPos.direction,
         speed: 0,
         color: playerColors[i] as PlayerColor,
-        checkpoints: 0,
-        totalCheckpoints: newTrack.checkpoints.length,
-        isFinished: false,
-        crashed: false  // Add the new crashed property
+-        checkpoints: 0,
+-        totalCheckpoints: newTrack.checkpoints.length,
+-        isFinished: false,
+-        crashed: false  // Add the new crashed property
++        checkpointsPassed: new Set(),
++        totalCheckpoints: newTrack.checkpoints.length,
++        isFinished: false,
++        crashed: false
       });
     }
-    
+
     setPlayers(initialPlayers);
     setCurrentPlayer(0);
     setWinner(null);
@@ -115,7 +122,8 @@ const Index = () => {
   const executeMove = (playerIndex: number, newPosition: Position) => {
     setPlayers(prevPlayers => {
       const updatedPlayers = [...prevPlayers];
-      const player = { ...updatedPlayers[playerIndex] };
+-      const player = { ...updatedPlayers[playerIndex] };
++      const player = { ...updatedPlayers[playerIndex] };
 
       // Save the last position for momentum calculation
       const lastPosition = { ...player.position };
@@ -202,19 +210,41 @@ const Index = () => {
       // Store the last position for true momentum calculation!
       (player as any).lastPosition = lastPosition;
 
-      // Check if hit checkpoint (only if not crashed)
-      if (!isCrashed && checkCheckpoint(newPosition, track.checkpoints)) {
-        if (player.checkpoints < player.totalCheckpoints) {
-          player.checkpoints += 1;
-        }
-      }
+-      // Check if hit checkpoint (only if not crashed)
+-      if (!isCrashed && checkCheckpoint(newPosition, track.checkpoints)) {
+-        if (player.checkpoints < player.totalCheckpoints) {
+-          player.checkpoints += 1;
+-        }
+-      }
++      // Check if crossed checkpoint line/unit (only if not crashed)
++      if (!isCrashed) {
++        const cpIndex = checkCheckpointCrossed(lastPosition, newPosition, track.checkpoints);
++        if (
++          cpIndex !== null &&
++          !player.checkpointsPassed.has(cpIndex) &&
++          player.checkpointsPassed.size < player.totalCheckpoints
++        ) {
++          const newPassed = new Set(player.checkpointsPassed);
++          newPassed.add(cpIndex);
++          player.checkpointsPassed = newPassed;
++        }
++      }
 
-      // Check if reached finish line (only if not crashed)
-      if (!isCrashed && checkFinishLine(newPosition, track.finishLine) &&
-        player.checkpoints === player.totalCheckpoints) {
-        player.isFinished = true;
-        setWinner(player);
-      }
+-      // Check if reached finish line (only if not crashed)
+-      if (!isCrashed && checkFinishLine(newPosition, track.finishLine) &&
+-        player.checkpoints === player.totalCheckpoints) {
+-        player.isFinished = true;
+-        setWinner(player);
+-      }
++      // Check if crossed finish line (only if not crashed & all checkpoints collected)
++      if (
++        !isCrashed &&
++        player.checkpointsPassed.size === player.totalCheckpoints &&
++        checkFinishLineCrossed(lastPosition, newPosition, track.finishLine)
++      ) {
++        player.isFinished = true;
++        setWinner(player);
++      }
 
       updatedPlayers[playerIndex] = player;
       return updatedPlayers;
