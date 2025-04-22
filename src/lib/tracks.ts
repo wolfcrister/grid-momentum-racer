@@ -1,4 +1,3 @@
-
 import { Position, Direction } from "@/types/game";
 
 // Helper to generate all positions across a certain X between min/max Y (inclusive)
@@ -41,36 +40,25 @@ function generateOvalTrackTiles() {
 
 const ovalTrackTiles = generateOvalTrackTiles();
 
-// --- Top straight Y and X ranges ---
+// --- Track setup constants ---
 const size = 20;
 const trackWidth = 4;
 const padding = 1;
-const topStraightY = padding; // y=1
-const xMin = padding;         // x=1
-const xMax = size - padding - 1; // x=18
 
-// Create finish line as a horizontal strip spanning the top straight road tiles
-function getFinishLineOnTopStraight(): Position[] {
-  // For the finish line, use the center two rows of the top straight if trackWidth=4, e.g., y=2,3 (middle of 1,2,3,4)
-  const finishLineRows = trackWidth % 2 === 0
-    ? [topStraightY + 1, topStraightY + 2] // y=2,3 if trackWidth=4
-    : [topStraightY + Math.floor(trackWidth / 2)];
-  // The finish should run fully across the top road from xMin to xMax (the road, not the curbs/walls)
-  let positions: Position[] = [];
-  for (const y of finishLineRows) {
-    positions = positions.concat(horizontalLine(y, xMin, xMax));
-  }
-  // Only include those tiles which are actually track tiles (i.e., for edge safety)
-  return positions.filter(tile => ovalTrackTiles.some(tt => tt.x === tile.x && tt.y === tile.y));
+// Create finish line as a horizontal line across the top straight
+function getFinishLine(): Position[] {
+  // Place the finish line at the top straight, crossing all lanes
+  const finishLineY = padding + Math.floor(trackWidth / 2); // Middle of the top straight
+  return horizontalLine(finishLineY, padding, padding + trackWidth - 1);
 }
 
-const finishLineOval = getFinishLineOnTopStraight();
+// Get the finish line positions
+const finishLineOval = getFinishLine();
 
-// Set starting positions on the top straight, just behind or on the finish line
-// We'll start at xMin+1, moving rightwards for 4 players (spaced out)
+// Set starting positions on the top straight, just behind the finish line
 const numberOfStartingPositions = 4;
-const startingY = topStraightY + trackWidth - 1; // e.g., y=4 (bottom of top straight)
-const startingXs = [xMin + 2, xMin + 4, xMin + 6, xMin + 8]; // e.g. [3,5,7,9]
+const startingY = padding + trackWidth - 1; // Bottom row of top straight
+const startingXs = [padding + 1, padding + 2, padding + 3, padding + 4]; // Spaced positions
 const ovalStartPositions = Array(numberOfStartingPositions)
   .fill(0)
   .map((_, i) => ({
@@ -78,20 +66,19 @@ const ovalStartPositions = Array(numberOfStartingPositions)
     direction: "E" as Direction
   }));
 
-// Create checkpoint positions across each straight section
-// Each checkpoint is a line of positions crossing the track
+// Create checkpoint positions as lines crossing each straight section
 const ovalCheckpoints = [
-  // Top straight (finish line) - already defined as finishLineOval, use a representative position
-  { x: 10, y: 2 },
+  // Top straight (finish line) - using the finish line positions
+  ...finishLineOval,
   
-  // Right straight - vertical line across the track at x=16
-  ...verticalLine(16, padding, padding + trackWidth - 1),
+  // Right straight - vertical line crossing the track width
+  ...verticalLine(size - padding - Math.floor(trackWidth / 2), padding, padding + trackWidth - 1),
   
-  // Bottom straight - horizontal line across the track at y=16
-  ...horizontalLine(16, padding, size - padding - 1),
+  // Bottom straight - horizontal line crossing the track width
+  ...horizontalLine(size - padding - Math.floor(trackWidth / 2), size - padding - trackWidth, size - padding - 1),
   
-  // Left straight - vertical line across the track at x=4
-  ...verticalLine(4, padding, size - padding - 1)
+  // Left straight - vertical line crossing the track width
+  ...verticalLine(padding + Math.floor(trackWidth / 2), size - padding - trackWidth, size - padding - 1)
 ];
 
 export const tracks = {
