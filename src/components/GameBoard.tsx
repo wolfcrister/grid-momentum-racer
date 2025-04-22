@@ -38,6 +38,7 @@ export function GameBoard({
       return momentumPos;
     }
     
+    // If momentum is not a valid move, return null instead of crashing
     return null;
   };
 

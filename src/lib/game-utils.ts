@@ -1,4 +1,3 @@
-
 import { Position, Direction, Player } from "@/types/game";
 
 // Get the next position based on current position and direction
@@ -211,10 +210,10 @@ export const tracks = {
       { x: 1, y: 10 }   // Left checkpoint
     ],
     finishLine: [
-      { x: 1, y: 5 },
-      { x: 1, y: 6 },
-      { x: 1, y: 7 },
-      { x: 1, y: 8 }
+      { x: 4, y: 4 },
+      { x: 4, y: 5 },
+      { x: 4, y: 6 },
+      { x: 4, y: 7 }
     ],
     startPositions: [
       { position: { x: 2, y: 5 }, direction: "E" as Direction },
