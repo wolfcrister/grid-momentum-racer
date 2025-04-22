@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { GameBoard } from "@/components/GameBoard";
 import { GameControls } from "@/components/GameControls";
@@ -22,6 +21,7 @@ import {
   tracks
 } from "@/lib/game-utils";
 import { Button } from "@/components/ui/button";
+import { tracks } from "@/lib/tracks";
 
 const playerColors = ["red", "blue", "yellow", "green"] as const;
 

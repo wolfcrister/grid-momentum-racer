@@ -1,4 +1,5 @@
 import { Position, Direction, Player } from "@/types/game";
+import { tracks } from "./tracks";
 
 // Get the next position based on current position and direction
 export function getNextPosition(position: Position, direction: Direction): Position {
@@ -23,45 +24,37 @@ export function getNextPosition(position: Position, direction: Direction): Posit
 // Get valid moves based on momentum rules
 export function getValidMoves(player: Player, boardSize: number): Position[] {
   if (player.crashed) return [];
-  
+  const trackLayout = tracks.oval; // always oval for now—could refactor for trackType
   const currentPos = player.position;
   const currentSpeed = player.speed;
   const currentDirection = player.direction;
 
-  // If player has no speed, they can move to any adjacent tile ON THE TRACK
+  // If player has no speed, can move to any adjacent tile ON THE TRACK
   if (currentSpeed === 0) {
     return getAllAdjacentPositions(currentPos, boardSize).filter(pos => 
-      tracks.oval.trackTiles.some(tt => tt.x === pos.x && tt.y === pos.y)
+      trackLayout.trackTiles.some(tt => tt.x === pos.x && tt.y === pos.y)
     );
   }
 
-  // Calculate the momentum position (continuing with same direction and speed)
+  // Calculate the momentum position (continuing with same direction/speed)
   const momentumPos = calculateMomentumPosition(currentPos, currentDirection, currentSpeed);
-  
-  // Instead of defaulting to "crash" if momentum is not on track,
-  // always allow the player to choose any adjacent tile to momentumPos that is on track.
   const validMoves: Position[] = [];
 
-  // Add momentum position if it's valid and on track
+  // If the momentum position is in-bounds AND on track, offer it
   if (
     isValidPosition(momentumPos, boardSize) &&
-    tracks.oval.trackTiles.some(tt => tt.x === momentumPos.x && tt.y === momentumPos.y)
+    trackLayout.trackTiles.some(tt => tt.x === momentumPos.x && tt.y === momentumPos.y)
   ) {
     validMoves.push(momentumPos);
   }
-
-  // Add all adjacent positions to the momentum position (potential adjustments)
-  const adjacentToMomentum = getAllAdjacentPositions(momentumPos, boardSize)
-    .filter(pos => tracks.oval.trackTiles.some(tt => tt.x === pos.x && tt.y === pos.y));
-
-  // Allow all positions that are on the track (possibly including the momentum position again, but that's ok)
-  for (const pos of adjacentToMomentum) {
-    // Don't add duplicates
+  // Always allow ALL adjacent positions to the momentum position IF those are on track
+  const possibleMoves = getAllAdjacentPositions(momentumPos, boardSize)
+    .filter(pos => trackLayout.trackTiles.some(tt => tt.x === pos.x && tt.y === pos.y));
+  for (const pos of possibleMoves) {
     if (!validMoves.some(m => m.x === pos.x && m.y === pos.y)) {
       validMoves.push(pos);
     }
   }
-
   return validMoves;
 }
 
@@ -210,85 +203,8 @@ export function checkFinishLine(
   return finishLine.some(fl => fl.x === position.x && fl.y === position.y);
 }
 
-// Track definitions
-export const tracks = {
-  oval: {
-    size: 20,
-    checkpoints: [
-      { x: 5, y: 1 },  // Top checkpoint
-      { x: 18, y: 10 }, // Right checkpoint
-      { x: 10, y: 18 }, // Bottom checkpoint
-      { x: 1, y: 10 }   // Left checkpoint
-    ],
-    // The finish line now crosses the course at x=4, for all y values that are on the track
-    finishLine: Array.from({length: 4}, (_, idx) => ({
-      x: 4,
-      y: 4 + idx // y values 4,5,6,7
-    })),
-    startPositions: [
-      { position: { x: 2, y: 5 }, direction: "E" as Direction },
-      { position: { x: 2, y: 6 }, direction: "E" as Direction },
-      { position: { x: 2, y: 7 }, direction: "E" as Direction },
-      { position: { x: 2, y: 8 }, direction: "E" as Direction }
-    ],
-    trackTiles: generateTrackTiles()
-  },
-  figure8: {
-    size: 12,
-    checkpoints: [
-      { x: 3, y: 3 },
-      { x: 9, y: 3 },
-      { x: 9, y: 9 },
-      { x: 3, y: 9 }
-    ],
-    finishLine: [
-      { x: 6, y: 1 },
-      { x: 5, y: 1 }
-    ],
-    startPositions: [
-      { position: { x: 7, y: 1 }, direction: "W" as Direction },
-      { position: { x: 7, y: 2 }, direction: "W" as Direction },
-      { position: { x: 8, y: 1 }, direction: "W" as Direction },
-      { position: { x: 8, y: 2 }, direction: "W" as Direction }
-    ]
-  }
-};
-
-// Generate the track tiles for a 20x20 board with a 4-tile wide track
-function generateTrackTiles(): Position[] {
-  const trackTiles: Position[] = [];
-  const size = 20;
-  const trackWidth = 4;
-  const padding = 1;
-  
-  // Add outer track tiles
-  for (let x = padding; x < size - padding; x++) {
-    // Top part of track
-    for (let y = padding; y < padding + trackWidth; y++) {
-      trackTiles.push({ x, y });
-    }
-    // Bottom part of track
-    for (let y = size - padding - trackWidth; y < size - padding; y++) {
-      trackTiles.push({ x, y });
-    }
-  }
-  
-  // Add side track tiles
-  for (let y = padding; y < size - padding; y++) {
-    // Left part of track
-    for (let x = padding; x < padding + trackWidth; x++) {
-      trackTiles.push({ x, y });
-    }
-    // Right part of track
-    for (let x = size - padding - trackWidth; x < size - padding; x++) {
-      trackTiles.push({ x, y });
-    }
-  }
-  
-  return trackTiles;
-}
-
 // Add a new function to check if a move would result in a crash
 export function checkCrash(position: Position): boolean {
+  // Only crash if the target position is not on track in the currently selected track  
   return !tracks.oval.trackTiles.some(tt => tt.x === position.x && tt.y === position.y);
 }
