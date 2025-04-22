@@ -5,7 +5,6 @@ import { GridTile } from "./GridTile";
 import { Car } from "./Car";
 import { Position, Direction, Player } from "@/types/game";
 import { tracks } from "@/lib/tracks";
-import { calculateMomentumPosition } from "@/lib/game-utils";
 
 interface GameBoardProps {
   size: number;
@@ -31,9 +30,21 @@ export function GameBoard({
     const player = players[currentPlayer];
     if (player.crashed || player.speed === 0) return null;
 
-    // Use the utility function to calculate momentum position
-    // Important: Use the actual speed value of the player
-    const momentumPos = calculateMomentumPosition(player.position, player.direction, player.speed);
+    // For vector-based momentum, we need to use the last movement delta
+    // This is stored on the player as lastPosition
+    if (!("lastPosition" in player) || !player["lastPosition"]) {
+      return null;
+    }
+    
+    const lastPosition = (player as any).lastPosition as Position;
+    const dx = player.position.x - lastPosition.x;
+    const dy = player.position.y - lastPosition.y;
+    
+    // The momentum position is current position + the last movement vector
+    const momentumPos = {
+      x: player.position.x + dx,
+      y: player.position.y + dy
+    };
     
     // Check if the calculated momentum position is within board boundaries
     if (momentumPos.x >= 0 && momentumPos.x < size && 
