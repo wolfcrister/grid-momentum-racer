@@ -25,6 +25,37 @@ export function GameBoard({
   checkpoints,
   finishLine
 }: GameBoardProps) {
+  // Calculate the momentum position for the current player
+  const getMomentumPosition = () => {
+    const player = players[currentPlayer];
+    if (player.crashed || player.speed === 0) return null;
+
+    // Calculate momentum based on current direction and speed
+    const directionVectors: Record<Direction, [number, number]> = {
+      N: [0, -1],
+      NE: [1, -1],
+      E: [1, 0],
+      SE: [1, 1],
+      S: [0, 1],
+      SW: [-1, 1],
+      W: [-1, 0],
+      NW: [-1, -1],
+    };
+
+    const [dx, dy] = directionVectors[player.direction];
+    const momentumX = player.position.x + (dx * player.speed);
+    const momentumY = player.position.y + (dy * player.speed);
+    
+    // Check if the calculated momentum position is in valid moves
+    if (validMoves.some(move => move.x === momentumX && move.y === momentumY)) {
+      return { x: momentumX, y: momentumY };
+    }
+    
+    return null;
+  };
+
+  const momentumPosition = getMomentumPosition();
+
   const renderTile = (x: number, y: number) => {
     const position: Position = { x, y };
     const isCheckpoint = checkpoints.some(cp => cp.x === x && cp.y === y);
@@ -32,13 +63,8 @@ export function GameBoard({
     const isValidMove = validMoves.some(vm => vm.x === x && vm.y === y) && !players[currentPlayer].crashed;
     const isTrackTile = tracks.oval.trackTiles.some(tt => tt.x === x && tt.y === y);
     
-    // Calculate momentum position
-    const player = players[currentPlayer];
-    const isMomentumPosition = player.speed > 0 && !player.crashed && 
-      validMoves.length > 0 &&
-      isValidMove &&
-      Math.abs(x - player.position.x) === Math.abs(player.direction === "E" || player.direction === "W" ? player.speed : 0) &&
-      Math.abs(y - player.position.y) === Math.abs(player.direction === "N" || player.direction === "S" ? player.speed : 0);
+    // Determine if this is the momentum position
+    const isMomentumPosition = momentumPosition && x === momentumPosition.x && y === momentumPosition.y;
     
     const tileType = isFinish ? "finish" : isCheckpoint ? "checkpoint" : "track";
     

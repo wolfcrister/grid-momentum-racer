@@ -47,6 +47,12 @@ export function GridTile({
           )}></div>
         </div>
       )}
+      
+      {isMomentumPosition && (
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <div className="absolute w-full h-full border-2 border-dashed border-primary/70 rounded-sm animate-pulse"></div>
+        </div>
+      )}
     </div>
   );
 }

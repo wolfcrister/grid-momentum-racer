@@ -18,6 +18,7 @@ import {
   checkSlipstream,
   checkCheckpoint,
   checkFinishLine,
+  checkCrash,
   tracks
 } from "@/lib/game-utils";
 import { Button } from "@/components/ui/button";
@@ -117,24 +118,32 @@ const Index = () => {
       const newDirection = getNewDirection(player.position, newPosition);
       const newSpeed = calculateNewSpeed(player, newPosition);
       
-      // Check for slipstream
-      const otherPlayers = prevPlayers.filter((_, i) => i !== playerIndex);
-      const hasSlipstream = checkSlipstream(player, otherPlayers, newPosition);
+      // Check for crash
+      const isCrashed = checkCrash(newPosition);
+      player.crashed = isCrashed;
+      
+      // Check for slipstream (only if not crashed)
+      let speedBonus = 0;
+      if (!isCrashed) {
+        const otherPlayers = prevPlayers.filter((_, i) => i !== playerIndex);
+        const hasSlipstream = checkSlipstream(player, otherPlayers, newPosition);
+        speedBonus = hasSlipstream ? 1 : 0;
+      }
       
       // Update player position and speed
       player.position = newPosition;
       player.direction = newDirection;
-      player.speed = newSpeed + (hasSlipstream ? 1 : 0);
+      player.speed = isCrashed ? 0 : newSpeed + speedBonus;
       
-      // Check if hit checkpoint
-      if (checkCheckpoint(newPosition, track.checkpoints)) {
+      // Check if hit checkpoint (only if not crashed)
+      if (!isCrashed && checkCheckpoint(newPosition, track.checkpoints)) {
         if (player.checkpoints < player.totalCheckpoints) {
           player.checkpoints += 1;
         }
       }
       
-      // Check if reached finish line
-      if (checkFinishLine(newPosition, track.finishLine) && 
+      // Check if reached finish line (only if not crashed)
+      if (!isCrashed && checkFinishLine(newPosition, track.finishLine) && 
           player.checkpoints === player.totalCheckpoints) {
         player.isFinished = true;
         setWinner(player);

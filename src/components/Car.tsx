@@ -1,3 +1,4 @@
+
 import { cn } from "@/lib/utils";
 import { Position, Direction, Player } from "@/types/game";
 import { useState, useEffect } from "react";
@@ -74,17 +75,17 @@ export function Car({ player, position, direction, isActive }: CarProps) {
         left: `calc(${position.x} * 100% / var(--grid-size))`,
         zIndex: isActive ? 20 : 10,
         '--grid-size': 10, // Default size, will be overridden by CSS variables
-        transform: 'translate(0.5%, 0.5%)',
       } as React.CSSProperties}
     >
       <div
         className={cn(
-          "w-[90%] h-[90%] flex items-center justify-center",
+          "w-[80%] h-[80%] flex items-center justify-center", // Reduced size from 90% to 80%
           "transition-transform duration-300 shadow-lg",
           carColorClasses[player.color as keyof typeof carColorClasses],
           "rounded-md",
           animating && "scale-110",
-          isActive && "ring-2 ring-white"
+          isActive && "ring-2 ring-white",
+          player.crashed && "opacity-60 grayscale" // Make crashed players visually distinct
         )}
       >
         <div className="relative w-full h-full flex items-center justify-center">
@@ -95,6 +96,14 @@ export function Car({ player, position, direction, isActive }: CarProps) {
           <div className="absolute bottom-0.5 right-0.5">
             {getDirectionIcon()}
           </div>
+          
+          {player.crashed && (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="text-white font-bold text-xs bg-red-800/70 px-1 rounded">
+                CRASH
+              </div>
+            </div>
+          )}
         </div>
       </div>
       
