@@ -50,15 +50,15 @@ export function Car({ player, position, direction, isActive }: CarProps) {
 
   const getDirectionIcon = () => {
     switch (direction) {
-      case "N": return <MoveUp className="w-4 h-4" />;
-      case "NE": return <ArrowUpRight className="w-4 h-4" />;
-      case "E": return <MoveRight className="w-4 h-4" />;
-      case "SE": return <ArrowDownRight className="w-4 h-4" />;
-      case "S": return <MoveDown className="w-4 h-4" />;
-      case "SW": return <ArrowDownLeft className="w-4 h-4" />;
-      case "W": return <MoveLeft className="w-4 h-4" />;
-      case "NW": return <ArrowUpLeft className="w-4 h-4" />;
-      default: return <MoveUp className="w-4 h-4" />;
+      case "N": return <MoveUp className="w-3 h-3" />;
+      case "NE": return <ArrowUpRight className="w-3 h-3" />;
+      case "E": return <MoveRight className="w-3 h-3" />;
+      case "SE": return <ArrowDownRight className="w-3 h-3" />;
+      case "S": return <MoveDown className="w-3 h-3" />;
+      case "SW": return <ArrowDownLeft className="w-3 h-3" />;
+      case "W": return <MoveLeft className="w-3 h-3" />;
+      case "NW": return <ArrowUpLeft className="w-3 h-3" />;
+      default: return <MoveUp className="w-3 h-3" />;
     }
   };
 
@@ -74,12 +74,12 @@ export function Car({ player, position, direction, isActive }: CarProps) {
         top: `calc(${position.y} * 100% / var(--grid-size))`,
         left: `calc(${position.x} * 100% / var(--grid-size))`,
         zIndex: isActive ? 20 : 10,
-        '--grid-size': 10, // Default size, will be overridden by CSS variables
+        '--grid-size': 20, // Default size, will be overridden by CSS variables
       } as React.CSSProperties}
     >
       <div
         className={cn(
-          "w-[80%] h-[80%] flex items-center justify-center", // Reduced size from 90% to 80%
+          "w-[65%] h-[65%] flex items-center justify-center", // Reduced size from 80% to 65%
           "transition-transform duration-300 shadow-lg",
           carColorClasses[player.color as keyof typeof carColorClasses],
           "rounded-md",
@@ -89,7 +89,7 @@ export function Car({ player, position, direction, isActive }: CarProps) {
         )}
       >
         <div className="relative w-full h-full flex items-center justify-center">
-          <div className="absolute inset-0 flex items-center justify-center font-bold text-lg">
+          <div className="absolute inset-0 flex items-center justify-center font-bold text-sm">
             {player.id}
           </div>
           
@@ -99,21 +99,21 @@ export function Car({ player, position, direction, isActive }: CarProps) {
           
           {player.crashed && (
             <div className="absolute inset-0 flex items-center justify-center">
-              <div className="text-white font-bold text-xs bg-red-800/70 px-1 rounded">
-                CRASH
+              <div className="text-white font-bold text-xs bg-red-800/70 px-1 rounded rotate-0">
+                X
               </div>
             </div>
           )}
         </div>
       </div>
       
-      {player.speed > 0 && (
-        <div className="absolute -bottom-3 left-1/2 transform -translate-x-1/2 flex space-x-1">
+      {player.speed > 0 && !player.crashed && (
+        <div className="absolute -bottom-3 left-1/2 transform -translate-x-1/2 flex space-x-0.5">
           {Array.from({ length: player.speed }).map((_, i) => (
             <div 
               key={i} 
               className={cn(
-                "w-1.5 h-1.5 rounded-full",
+                "w-1 h-1 rounded-full",
                 carColorClasses[player.color as keyof typeof carColorClasses]
               )}
             ></div>

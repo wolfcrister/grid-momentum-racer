@@ -28,9 +28,9 @@ export function GridTile({
         isTrackTile && "bg-card",
         type === "checkpoint" && "bg-secondary/30",
         type === "finish" && "bg-accent checkered",
-        isValidMove && "cursor-pointer ring-2 ring-primary ring-opacity-70",
-        isValidMove && !isMomentumPosition && "bg-primary/10",
-        isMomentumPosition && "bg-primary/30"
+        isValidMove && "cursor-pointer", 
+        isValidMove && !isMomentumPosition && "ring-1 ring-primary/40",
+        isMomentumPosition && "ring-2 ring-primary ring-opacity-70"
       )}
       style={{
         gridColumn: position.x + 1,
@@ -42,8 +42,8 @@ export function GridTile({
       {isValidMove && (
         <div className="absolute inset-0 flex items-center justify-center opacity-70">
           <div className={cn(
-            "w-2 h-2 rounded-full",
-            isMomentumPosition ? "bg-primary animate-pulse w-3 h-3" : "bg-primary",
+            "w-1.5 h-1.5 rounded-full",
+            isMomentumPosition ? "bg-primary animate-pulse w-2.5 h-2.5" : "bg-primary/60",
           )}></div>
         </div>
       )}
