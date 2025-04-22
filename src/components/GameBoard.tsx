@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 import { GridTile } from "./GridTile";
 import { Car } from "./Car";
 import { Position, Direction, Player } from "@/types/game";
-import { tracks } from "@/lib/game-utils";
+import { tracks, calculateMomentumPosition } from "@/lib/game-utils";
 
 interface GameBoardProps {
   size: number;
@@ -30,25 +30,12 @@ export function GameBoard({
     const player = players[currentPlayer];
     if (player.crashed || player.speed === 0) return null;
 
-    // Calculate momentum based on current direction and speed
-    const directionVectors: Record<Direction, [number, number]> = {
-      N: [0, -1],
-      NE: [1, -1],
-      E: [1, 0],
-      SE: [1, 1],
-      S: [0, 1],
-      SW: [-1, 1],
-      W: [-1, 0],
-      NW: [-1, -1],
-    };
-
-    const [dx, dy] = directionVectors[player.direction];
-    const momentumX = player.position.x + (dx * player.speed);
-    const momentumY = player.position.y + (dy * player.speed);
+    // Use the utility function to calculate momentum position
+    const momentumPos = calculateMomentumPosition(player.position, player.direction, player.speed);
     
     // Check if the calculated momentum position is in valid moves
-    if (validMoves.some(move => move.x === momentumX && move.y === momentumY)) {
-      return { x: momentumX, y: momentumY };
+    if (validMoves.some(move => move.x === momentumPos.x && move.y === momentumPos.y)) {
+      return momentumPos;
     }
     
     return null;

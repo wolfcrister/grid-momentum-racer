@@ -1,3 +1,4 @@
+
 import { Position, Direction, Player } from "@/types/game";
 
 // Get the next position based on current position and direction
@@ -55,7 +56,7 @@ export function getValidMoves(player: Player, boardSize: number): Position[] {
 }
 
 // Calculate the momentum position (where you would go if you maintained same direction/speed)
-function calculateMomentumPosition(position: Position, direction: Direction, speed: number): Position {
+export function calculateMomentumPosition(position: Position, direction: Direction, speed: number): Position {
   const directionVectors: Record<Direction, [number, number]> = {
     N: [0, -1],
     NE: [1, -1],
