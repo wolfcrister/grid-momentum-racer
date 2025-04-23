@@ -1,4 +1,3 @@
-
 import { Player, Position, Direction } from "@/types/game";
 import { isValidPosition, doesSegmentPassThroughTile } from "./position-utils";
 import { tracks } from "./tracks";
@@ -134,4 +133,3 @@ export function checkCrash(position: Position, trackTiles: Position[] = tracks.o
 
 // Import the required functions from movement-utils to fill the import dependencies
 import { getNewDirection, getValidMovesByMomentum, getValidMovesWithCollisions } from "./movement-utils";
-
