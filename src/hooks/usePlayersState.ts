@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Player, Position, Track, Direction } from "@/types/game";
 import { tracks } from "@/lib/tracks";
@@ -24,7 +25,7 @@ export function usePlayersState(
   track: Track,
   setMoveLog: React.Dispatch<React.SetStateAction<MoveLogEntry[]>>,
   setWinner: React.Dispatch<React.SetStateAction<Player | null>>,
-  currentRound: number,
+  initialRound: number,
 ) {
   const initializePlayers = () => {
     const initialPlayers: Player[] = [];
@@ -44,9 +45,9 @@ export function usePlayersState(
     return initialPlayers;
   };
 
-  const [players, setPlayers] = useState<Player[]>([]); // will be initialized by parent
+  const [players, setPlayers] = useState<Player[]>([]); 
   const [currentPlayer, setCurrentPlayer] = useState(0);
-  const [currentRoundState, setCurrentRound] = useState(currentRound);
+  const [currentRound, setCurrentRound] = useState(initialRound);
   const [winner, _setWinner] = useState<Player | null>(null);
 
   const executeMove = (
@@ -83,7 +84,6 @@ export function usePlayersState(
           toast({
             title: "Player " + player.id + " spun out!",
             description: "Facing a random direction and speed reset.",
-            duration: 2000
           });
         }
       }
@@ -134,7 +134,6 @@ export function usePlayersState(
         toast({
           title: "Checkpoint passed!",
           description: `Player ${player.id}: ${player.checkpointsPassed.size}/${player.totalCheckpoints}`,
-          duration: 2000
         });
       }
 
@@ -147,7 +146,6 @@ export function usePlayersState(
         toast({
           title: "Winner!",
           description: `Player ${player.id} has won the race!`,
-          duration: 5000
         });
       }
       updatedPlayers[playerIndex] = player;
@@ -158,7 +156,7 @@ export function usePlayersState(
   return {
     players, setPlayers,
     currentPlayer, setCurrentPlayer,
-    currentRound: currentRoundState, setCurrentRound,
+    currentRound, setCurrentRound,
     winner, setWinner: _setWinner,
     initializePlayers,
     executeMove,

@@ -1,11 +1,10 @@
 
-import React from "react";
+import React, { useEffect } from "react";
 import { GameBoard } from "@/components/GameBoard";
 import { GameControls } from "@/components/GameControls";
 import { GameStatus } from "@/components/GameStatus";
 import { MoveLog } from "@/components/MoveLog";
 import { Button } from "@/components/ui/button";
-import { tracks } from "@/lib/tracks";
 import { StartScreen } from "@/components/StartScreen";
 import { useGameEngine } from "@/hooks/useGameEngine";
 

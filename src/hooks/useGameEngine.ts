@@ -45,29 +45,31 @@ export function useGameEngine() {
     track,
     setMoveLog,
     setWinner,
-    1 // initial round
+    currentRound // Pass the currentRound state instead of hardcoded 1
   );
 
-  // Initialize game when settings change
+  // Initialize game when settings change and game is not started
   useEffect(() => {
     if (gameStarted) return;
+    
     setTrack(tracks[trackType]);
-    setPlayers(initializePlayers());
+    const initialPlayers = initializePlayers();
+    setPlayers(initialPlayers);
     setCurrentPlayer(0);
     setWinner(null);
     setCurrentRound(1);
     setValidMoves([]);
     setMoveLog([]);
     setProgrammedMoves({});
-  }, [playerCount, trackType, gameStarted, initializePlayers, setTrack, setPlayers, 
-      setCurrentPlayer, setCurrentRound, setValidMoves, setMoveLog, setProgrammedMoves]);
+  }, [trackType, playerCount, gameStarted]);
 
-  // Calculate valid moves when current player changes
+  // Calculate valid moves when current player or players change
   useEffect(() => {
-    if (!gameStarted) return;
+    if (!gameStarted || players.length === 0) return;
+    
     const player = players[currentPlayer];
-    // Fix: Use getValidMovesWithCollisions directly instead of getValidMoves 
-    // which was causing an infinite loop
+    if (!player) return;
+    
     const moves = getValidMovesWithCollisions(player, players, track.size);
     setValidMoves(moves);
   }, [currentPlayer, players, track.size, gameStarted]);
