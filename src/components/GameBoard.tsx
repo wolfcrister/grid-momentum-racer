@@ -106,7 +106,8 @@ export function GameBoard({
           gridTemplateColumns: `repeat(${size}, 1fr)`,
           aspectRatio: "1/1",
           position: "relative",
-          '--grid-size': size, // Set the CSS variable for sizing
+          // Fix: Use correct React CSS variable syntax (camelCase)
+          "--gridSize": size, // Changed from '--grid-size' to '--gridSize'
         }}
       >
         {Array.from({ length: size * size }).map((_, index) => {
