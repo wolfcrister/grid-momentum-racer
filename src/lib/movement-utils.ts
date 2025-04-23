@@ -1,3 +1,4 @@
+
 import { Position, Direction, Player } from "@/types/game";
 import { tracks } from "@/lib/tracks";
 import { isValidPosition } from "./position-utils";
@@ -149,8 +150,22 @@ export function getValidMovesByMomentum(player: Player, boardSize: number): Posi
   // Infer last movement vector (dx, dy)
   const [dx, dy] = getLastDelta(player);
 
-  // No movement, so no momentum
+  // No momentum, allow moving in current direction
   if (dx === 0 && dy === 0) {
+    const directionVectors: Record<Direction, [number, number]> = {
+      N: [0, -1], NE: [1, -1], E: [1, 0], SE: [1, 1],
+      S: [0, 1], SW: [-1, 1], W: [-1, 0], NW: [-1, -1]
+    };
+    const [dx, dy] = directionVectors[player.direction];
+    const forwardPos = { x: currentPos.x + dx, y: currentPos.y + dy };
+    if (
+      isValidPosition(forwardPos, boardSize) &&
+      trackLayout.trackTiles.some(tt => tt.x === forwardPos.x && tt.y === forwardPos.y)
+    ) {
+      return [forwardPos];
+    }
+    
+    // If forward isn't valid, try all adjacent positions
     return getAllAdjacentPositions(currentPos, boardSize).filter(pos =>
       trackLayout.trackTiles.some(tt => tt.x === pos.x && tt.y === pos.y)
     );
