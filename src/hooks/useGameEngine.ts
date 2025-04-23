@@ -122,7 +122,7 @@ export function useGameEngine() {
       let didSpin = false;
 
       // Check if the new position would result in a crash
-      // Fix: Update this call to match what checkCrash expects
+      // Fix: Pass only the position to checkCrash
       isCrashed = checkCrash(newPosition);
 
       // Calculate next turn's possible moves if standing at newPosition with potential state
