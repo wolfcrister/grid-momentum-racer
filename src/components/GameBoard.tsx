@@ -1,4 +1,3 @@
-
 import React, { useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { GridTile } from "./GridTile";
@@ -106,8 +105,7 @@ export function GameBoard({
           gridTemplateColumns: `repeat(${size}, 1fr)`,
           aspectRatio: "1/1",
           position: "relative",
-          // Fix: Use correct React CSS variable syntax (camelCase)
-          "--gridSize": size, // Changed from '--grid-size' to '--gridSize'
+          ...({ '--gridSize': size } as React.CSSProperties)
         }}
       >
         {Array.from({ length: size * size }).map((_, index) => {
