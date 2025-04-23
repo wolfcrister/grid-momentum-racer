@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import {
   Player,
@@ -9,16 +8,14 @@ import {
 } from "@/types/game";
 import {
   getValidMoves,
-  getNewDirection,
-  calculateNewSpeed,
   checkSlipstream,
   checkCheckpointCrossed,
   checkFinishLineCrossed,
   checkCrash,
-  distanceFromTrack,
   getReverseDirection,
   getAllAdjacentPositions,
 } from "@/lib/game-utils";
+import { getNewDirection, calculateNewSpeed } from "@/lib/movement-utils";
 import { tracks } from "@/lib/tracks";
 import { toast } from "@/hooks/use-toast";
 import { MoveLogEntry } from "@/components/MoveLog";
@@ -83,7 +80,7 @@ export function useMoveExecution(
       let didSpin = false;
 
       // Check if the new position would result in a crash
-      // Fix: Pass only the position to checkCrash
+      // Fixed: Pass only the position to checkCrash
       isCrashed = checkCrash(newPosition);
 
       // Calculate next turn's possible moves if standing at newPosition with potential state
