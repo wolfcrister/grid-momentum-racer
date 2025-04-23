@@ -8,13 +8,13 @@ import {
   calculateNewSpeed,
   isPositionOccupiedByPlayer,
   getValidMovesWithCollisions,
-  getValidMovesByMomentum
+  getValidMovesByMomentum,
+  getAllAdjacentPositions
 } from './movement-utils';
 
 // Import and re-export functions from position-utils.ts
 import {
   isValidPosition,
-  getAllAdjacentPositions,
   doesSegmentPassThroughTile
 } from './position-utils';
 
@@ -40,10 +40,10 @@ export {
   isPositionOccupiedByPlayer,
   getValidMovesWithCollisions,
   getValidMovesByMomentum,
+  getAllAdjacentPositions,
   
   // From position-utils.ts
   isValidPosition,
-  getAllAdjacentPositions,
   doesSegmentPassThroughTile,
 
   // From gameplay-utils.ts
