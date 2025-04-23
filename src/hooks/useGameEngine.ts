@@ -1,4 +1,5 @@
-import { useEffect } from "react";
+
+import { useEffect, useState } from "react";
 import { GameMode, Player, Position } from "@/types/game";
 import { tracks } from "@/lib/tracks";
 import { getValidMoves } from "@/lib/game-utils";
@@ -26,12 +27,17 @@ export function useGameEngine() {
     programmedMoves, setProgrammedMoves,
   } = useGameModeState();
 
+  // State for winner
+  const [winner, setWinner] = useState<Player | null>(null);
+  
+  // Add state for valid moves
+  const [validMoves, setValidMoves] = useState<Position[]>([]);
+
   // Player state (needs the latest playerCount, track, moveLog/winner handlers)
   const {
     players, setPlayers,
     currentPlayer, setCurrentPlayer,
     currentRound, setCurrentRound,
-    winner, setWinner,
     initializePlayers,
     executeMove,
   } = usePlayersState(
@@ -41,8 +47,6 @@ export function useGameEngine() {
     setWinner,
     1 // initial round
   );
-
-  const [validMoves, setValidMoves] = useState<Position[]>([]);
 
   // Initialize game when settings change
   useEffect(() => {

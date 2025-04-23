@@ -53,7 +53,7 @@ export function usePlayersState(
   const [currentRoundState, setCurrentRound] = useState(currentRound);
   const [winner, _setWinner] = useState<Player | null>(null);
 
-  // Let parent manage winner for now to avoid confusion
+  // Let parent manage winner for now
   // Expose functions for moving players
   const executeMove = (
     playerIndex: number,
