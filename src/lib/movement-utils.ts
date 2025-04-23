@@ -1,6 +1,5 @@
-
 import { Position, Direction, Player } from "@/types/game";
-import { tracks } from "@/lib/tracks";
+import { tracks } from "./tracks";
 import { isValidPosition } from "./position-utils";
 
 // Get the next position based on current position and direction
@@ -108,13 +107,13 @@ export function calculateNewSpeed(player: Player, newPosition: Position): number
 // Check if a position has a player occupying it
 export function isPositionOccupiedByPlayer(position: Position, players: Player[]): boolean {
   return players.some(player => 
-    !player.crashed && player.position.x === position.x && player.position.y === position.y
+    player.position.x === position.x && player.position.y === position.y
   );
 }
 
 // Calculate valid moves accounting for player collisions
 export function getValidMovesWithCollisions(player: Player, players: Player[], boardSize: number): Position[] {
-  const otherPlayers = players.filter(p => p.id !== player.id && !p.crashed);
+  const otherPlayers = players.filter(p => p.id !== player.id);
   const validMoves = getValidMovesByMomentum(player, boardSize);
   
   // Filter out positions occupied by other players
@@ -125,7 +124,6 @@ export function getValidMovesWithCollisions(player: Player, players: Player[], b
 
 // Base valid moves by momentum without checking collisions
 export function getValidMovesByMomentum(player: Player, boardSize: number): Position[] {
-  if (player.crashed) return [];
   const trackLayout = tracks.oval; // always oval for now
   const currentPos = player.position;
 

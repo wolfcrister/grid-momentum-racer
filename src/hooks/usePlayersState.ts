@@ -12,6 +12,7 @@ import {
   getAllAdjacentPositions,
   getNewDirection,
   calculateNewSpeed,
+  checkCrash
 } from "@/lib/game-utils";
 
 const playerColors = ["red", "blue", "yellow", "green"] as const;
@@ -77,7 +78,7 @@ export function usePlayersState(
       if (possibleMovesNextTurn.length === 0) {
         const adjacents = getAllAdjacentPositions(newPosition, track.size);
         const offTrackAdjacents = adjacents.filter(p =>
-          !trackTiles.some(tt => tt.x === p.x && tt.y === p.y)
+          checkCrash(p)
         );
         if (offTrackAdjacents.length > 0) {
           didSpin = true;

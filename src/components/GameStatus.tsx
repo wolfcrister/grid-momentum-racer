@@ -28,11 +28,7 @@ export function GameStatus({ players, currentRound, winner }: GameStatusProps) {
           return (
             <div 
               key={player.id} 
-              className={`p-2 rounded flex items-center justify-between ${
-                player.crashed 
-                  ? "bg-muted/50 text-muted-foreground" 
-                  : "bg-muted"
-              }`}
+              className="p-2 rounded flex items-center justify-between bg-muted"
             >
               <div className="flex items-center gap-2">
                 <div 
@@ -43,7 +39,7 @@ export function GameStatus({ players, currentRound, winner }: GameStatusProps) {
                     "bg-green-500"
                   }`}
                 />
-                <span className={player.crashed ? "line-through" : ""}>
+                <span>
                   Player {player.id}
                 </span>
               </div>

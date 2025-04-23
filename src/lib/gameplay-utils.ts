@@ -4,8 +4,6 @@ import { tracks } from "./tracks";
 
 // Get valid moves based on true momentum rules (vector-based)
 export function getValidMoves(player: Player, boardSize: number, allPlayers?: Player[]): Position[] {
-  if (player.crashed) return [];
-  
   // If allPlayers is provided, check for collisions with other players
   if (allPlayers) {
     return getValidMovesWithCollisions(player, allPlayers, boardSize);
@@ -127,9 +125,8 @@ export function checkFinishLineCrossed(
 }
 
 // Check if a position would result in a crash (not on track)
-// This function explicitly takes two parameters to match how it's being called 
-// in usePlayersState.ts
-export function checkCrash(position: Position, trackTiles: Position[]): boolean {
+export function checkCrash(position: Position): boolean {
+  const trackTiles = tracks.oval.trackTiles;
   return !trackTiles.some(tt => tt.x === position.x && tt.y === position.y);
 }
 
