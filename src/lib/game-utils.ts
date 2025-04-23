@@ -26,7 +26,6 @@ import {
   getReverseDirection,
   checkCheckpointCrossed,
   checkFinishLineCrossed,
-  checkCrash
 } from './gameplay-utils';
 
 // Re-export all the imported functions
@@ -53,5 +52,4 @@ export {
   getReverseDirection,
   checkCheckpointCrossed,
   checkFinishLineCrossed,
-  checkCrash
 };
