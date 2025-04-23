@@ -28,7 +28,7 @@ export function GameBoard({
   // Calculate the momentum position for the current player
   const getMomentumPosition = () => {
     const player = players[currentPlayer];
-    if (player.crashed || player.speed === 0) return null;
+    if (player.speed === 0) return null;
 
     // For vector-based momentum, we need to use the last movement delta
     // This is stored on the player as lastPosition
@@ -64,7 +64,7 @@ export function GameBoard({
       checkpointLine.some(cp => cp.x === x && cp.y === y)
     );
     const isFinish = finishLine.some(fl => fl.x === x && fl.y === y);
-    const isValidMove = validMoves.some(vm => vm.x === x && vm.y === y) && !players[currentPlayer].crashed;
+    const isValidMove = validMoves.some(vm => vm.x === x && vm.y === y);
     const isTrackTile = tracks.oval.trackTiles.some(tt => tt.x === x && tt.y === y);
     
     // Determine if this is the momentum position

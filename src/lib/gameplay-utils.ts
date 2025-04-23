@@ -1,4 +1,3 @@
-
 import { Player, Position, Direction } from "@/types/game";
 import { isValidPosition, doesSegmentPassThroughTile } from "./position-utils";
 import { tracks } from "./tracks";

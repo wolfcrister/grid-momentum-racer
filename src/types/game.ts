@@ -18,7 +18,6 @@ export type Player = {
   checkpointsPassed: Set<number>;
   totalCheckpoints: number;
   isFinished: boolean;
-  crashed: boolean;
 };
 
 export type GameMode = "turn-based" | "programming";

@@ -24,7 +24,7 @@ export function Car({ player, position, direction, isActive }: CarProps) {
       setAnimating(true);
       
       // Check if this was a spin (speed went to 0 but not crashed)
-      if (player.speed === 0 && !player.crashed) {
+      if (player.speed === 0) {
         setSpinning(true);
         setTimeout(() => setSpinning(false), 1000);
       }
@@ -35,7 +35,7 @@ export function Car({ player, position, direction, isActive }: CarProps) {
       }, 300);
       return () => clearTimeout(timer);
     }
-  }, [position, prevPosition, player.speed, player.crashed]);
+  }, [position, prevPosition, player.speed]);
 
   const getDirectionIcon = () => {
     switch (direction) {
@@ -52,10 +52,10 @@ export function Car({ player, position, direction, isActive }: CarProps) {
   };
 
   const carColorClasses = {
-    red: player.crashed ? "bg-red-900/50 border-red-900" : "bg-primary border-primary-foreground",
-    blue: player.crashed ? "bg-blue-900/50 border-blue-900" : "bg-secondary border-secondary-foreground",
-    yellow: player.crashed ? "bg-yellow-900/50 border-yellow-900" : "bg-accent border-accent-foreground",
-    green: player.crashed ? "bg-green-900/50 border-green-900" : "bg-green-500 border-green-500"
+    red: "bg-primary border-primary-foreground",
+    blue: "bg-secondary border-secondary-foreground",
+    yellow: "bg-accent border-accent-foreground",
+    green: "bg-green-500 border-green-500"
   };
 
   return (
@@ -80,8 +80,7 @@ export function Car({ player, position, direction, isActive }: CarProps) {
           carColorClasses[player.color as keyof typeof carColorClasses],
           animating && "scale-110",
           spinning && "animate-spin",
-          isActive && "ring-2 ring-white",
-          player.crashed && "opacity-60 grayscale"
+          isActive && "ring-2 ring-white"
         )}
       >
         <div className="relative w-full h-full flex items-center justify-center">
@@ -95,16 +94,8 @@ export function Car({ player, position, direction, isActive }: CarProps) {
             {player.id}
           </div>
           
-          {/* Status indicators */}
-          {player.crashed && (
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="text-white font-bold text-xs bg-red-800/70 px-1 rounded rotate-0">
-                X
-              </div>
-            </div>
-          )}
-          
-          {spinning && !player.crashed && (
+          {/* Spin indicator */}
+          {spinning && (
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="text-white font-bold text-xs bg-orange-500/70 px-1 rounded rotate-0">
                 SPIN
@@ -115,7 +106,7 @@ export function Car({ player, position, direction, isActive }: CarProps) {
       </div>
       
       {/* Momentum indicators */}
-      {player.speed > 0 && !player.crashed && (
+      {player.speed > 0 && (
         <div className="absolute bottom-0 left-0 w-full">
           <div className={cn(
             "flex justify-center gap-0.5 mt-1", 

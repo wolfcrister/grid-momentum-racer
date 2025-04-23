@@ -25,8 +25,7 @@ import {
   distanceFromTrack,
   getReverseDirection,
   checkCheckpointCrossed,
-  checkFinishLineCrossed,
-  checkCrash
+  checkFinishLineCrossed
 } from './gameplay-utils';
 
 // Re-export all the imported functions
@@ -52,6 +51,5 @@ export {
   distanceFromTrack,
   getReverseDirection,
   checkCheckpointCrossed,
-  checkFinishLineCrossed,
-  checkCrash
+  checkFinishLineCrossed
 };

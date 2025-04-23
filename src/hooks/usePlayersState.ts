@@ -9,7 +9,6 @@ import {
   checkSlipstream,
   checkCheckpointCrossed,
   checkFinishLineCrossed,
-  checkCrash,
   getAllAdjacentPositions,
   getNewDirection,
   calculateNewSpeed,
@@ -41,7 +40,6 @@ export function usePlayersState(
         checkpointsPassed: new Set(),
         totalCheckpoints: track.checkpoints.length,
         isFinished: false,
-        crashed: false,
       });
     }
     return initialPlayers;
@@ -69,17 +67,12 @@ export function usePlayersState(
       const dx = newPosition.x - lastPosition.x;
       const dy = newPosition.y - lastPosition.y;
 
-      let isCrashed = false;
       let didSpin = false;
 
-      isCrashed = checkCrash(newPosition, trackTiles);
-
       let possibleMovesNextTurn: Position[] = [];
-      if (!player.crashed && !isCrashed) {
-        const simPlayer = { ...player, position: newPosition, direction: newDirection, speed: newSpeed };
-        (simPlayer as any).lastPosition = lastPosition;
-        possibleMovesNextTurn = getValidMoves(simPlayer, track.size, updatedPlayers);
-      }
+      const simPlayer = { ...player, position: newPosition, direction: newDirection, speed: newSpeed };
+      (simPlayer as any).lastPosition = lastPosition;
+      possibleMovesNextTurn = getValidMoves(simPlayer, track.size, updatedPlayers);
 
       if (possibleMovesNextTurn.length === 0) {
         const adjacents = getAllAdjacentPositions(newPosition, track.size);
@@ -92,28 +85,16 @@ export function usePlayersState(
             description: "Facing a random direction and speed reset.",
             duration: 2000
           });
-        } else {
-          isCrashed = true;
-          toast("Player " + player.id + " crashed!", {
-            description: "Out of the race",
-            duration: 3000
-          });
         }
       }
 
-      if (isCrashed) {
-        player.crashed = true;
-        player.speed = 0;
-      } else if (didSpin) {
+      if (didSpin) {
         player.speed = 0;
         player.direction = pickRandomMainDirection();
-        player.crashed = false;
-      } else {
-        player.crashed = false;
       }
 
       let speedBonus = 0;
-      if (!isCrashed && !didSpin) {
+      if (!didSpin) {
         const otherPlayers = prevPlayers.filter((_, i) => i !== playerIndex);
         const hasSlipstream = checkSlipstream(player, otherPlayers, newPosition);
         speedBonus = hasSlipstream ? 1 : 0;
@@ -121,7 +102,7 @@ export function usePlayersState(
 
       player.position = newPosition;
       player.direction = didSpin ? player.direction : newDirection;
-      player.speed = isCrashed ? 0 : (didSpin ? 0 : newSpeed + speedBonus);
+      player.speed = didSpin ? 0 : (newSpeed + speedBonus);
 
       const momentumVector: [number, number] = [dx, dy];
       const speedChange = player.speed - oldSpeed;
@@ -135,31 +116,28 @@ export function usePlayersState(
           round: currentRound,
           speedChange,
           momentum: momentumVector,
-          event: isCrashed ? "crash" : didSpin ? "spin" : undefined
+          event: didSpin ? "spin" : undefined
         }
       ]);
       (player as any).lastPosition = lastPosition;
 
-      if (!isCrashed) {
-        const checkpointLines = track.checkpoints;
-        const cpIndex = checkCheckpointCrossed(lastPosition, newPosition, checkpointLines);
-        if (
-          cpIndex !== null &&
-          !player.checkpointsPassed.has(cpIndex) &&
-          player.checkpointsPassed.size < player.totalCheckpoints
-        ) {
-          const newPassed = new Set(player.checkpointsPassed);
-          newPassed.add(cpIndex);
-          player.checkpointsPassed = newPassed;
-          toast("Checkpoint passed!", {
-            description: `Player ${player.id}: ${player.checkpointsPassed.size}/${player.totalCheckpoints}`,
-            duration: 2000
-          });
-        }
+      const checkpointLines = track.checkpoints;
+      const cpIndex = checkCheckpointCrossed(lastPosition, newPosition, checkpointLines);
+      if (
+        cpIndex !== null &&
+        !player.checkpointsPassed.has(cpIndex) &&
+        player.checkpointsPassed.size < player.totalCheckpoints
+      ) {
+        const newPassed = new Set(player.checkpointsPassed);
+        newPassed.add(cpIndex);
+        player.checkpointsPassed = newPassed;
+        toast("Checkpoint passed!", {
+          description: `Player ${player.id}: ${player.checkpointsPassed.size}/${player.totalCheckpoints}`,
+          duration: 2000
+        });
       }
 
       if (
-        !isCrashed &&
         player.checkpointsPassed.size === player.totalCheckpoints &&
         checkFinishLineCrossed(lastPosition, newPosition, track.finishLine)
       ) {
