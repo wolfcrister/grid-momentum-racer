@@ -1,11 +1,10 @@
-
 import { useState } from "react";
 import { Player, Position, Track, Direction } from "@/types/game";
 import { tracks } from "@/lib/tracks";
 import { toast } from "@/hooks/use-toast";
 import { MoveLogEntry } from "@/components/MoveLog";
 import {
-  getValidMoves,
+  getValidMovesWithCollisions,
   checkSlipstream,
   checkCheckpointCrossed,
   checkFinishLineCrossed,
@@ -72,7 +71,7 @@ export function usePlayersState(
       let possibleMovesNextTurn: Position[] = [];
       const simPlayer = { ...player, position: newPosition, direction: newDirection, speed: newSpeed };
       (simPlayer as any).lastPosition = lastPosition;
-      possibleMovesNextTurn = getValidMoves(simPlayer, track.size, updatedPlayers);
+      possibleMovesNextTurn = getValidMovesWithCollisions(simPlayer, updatedPlayers, track.size);
 
       if (possibleMovesNextTurn.length === 0) {
         const adjacents = getAllAdjacentPositions(simPlayer.position, track.size);
