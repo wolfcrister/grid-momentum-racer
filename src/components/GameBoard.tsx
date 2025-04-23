@@ -12,7 +12,7 @@ interface GameBoardProps {
   currentPlayer: number;
   onMove: (position: Position) => void;
   validMoves: Position[];
-  checkpoints: Position[];
+  checkpoints: Position[][];  // Changed from Position[] to Position[][] to match Track type
   finishLine: Position[];
 }
 
@@ -59,7 +59,10 @@ export function GameBoard({
 
   const renderTile = (x: number, y: number) => {
     const position: Position = { x, y };
-    const isCheckpoint = checkpoints.some(cp => cp.x === x && cp.y === y);
+    // Update how we check for checkpoint tiles to handle the 2D array structure
+    const isCheckpoint = checkpoints.some(checkpointLine => 
+      checkpointLine.some(cp => cp.x === x && cp.y === y)
+    );
     const isFinish = finishLine.some(fl => fl.x === x && fl.y === y);
     const isValidMove = validMoves.some(vm => vm.x === x && vm.y === y) && !players[currentPlayer].crashed;
     const isTrackTile = tracks.oval.trackTiles.some(tt => tt.x === x && tt.y === y);
