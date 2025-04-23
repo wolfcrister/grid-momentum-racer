@@ -1,14 +1,14 @@
-
 import { useState, useEffect } from "react";
-import { 
-  Player, 
-  Position, 
-  Track, 
-  GameMode 
+import {
+  Player,
+  Position,
+  Track,
+  GameMode,
+  Direction
 } from "@/types/game";
-import { 
-  getValidMoves, 
-  getNewDirection, 
+import {
+  getValidMoves,
+  getNewDirection,
   calculateNewSpeed,
   checkSlipstream,
   checkCheckpointCrossed,
@@ -16,12 +16,18 @@ import {
   checkCrash,
   distanceFromTrack,
   getReverseDirection,
+  getAllAdjacentPositions,
 } from "@/lib/game-utils";
 import { tracks } from "@/lib/tracks";
 import { toast } from "@/hooks/use-toast";
 import { MoveLogEntry } from "@/components/MoveLog";
 
 const playerColors = ["red", "blue", "yellow", "green"] as const;
+const MAIN_DIRECTIONS: Direction[] = ["N", "E", "S", "W"];
+
+function pickRandomMainDirection(): Direction {
+  return MAIN_DIRECTIONS[Math.floor(Math.random() * MAIN_DIRECTIONS.length)];
+}
 
 export function useGameEngine() {
   // Game state
@@ -110,9 +116,11 @@ export function useGameEngine() {
       const dy = newPosition.y - lastPosition.y;
       const momentumPos = { x: newPosition.x + dx, y: newPosition.y + dy };
 
-      const actualMoveDist = distanceFromTrack(newPosition, trackTiles);
-      const momentumDist = distanceFromTrack(momentumPos, trackTiles);
+      // ---- Modified SPIN / CRASH LOGIC ----
+      let isCrashed = false;
+      let didSpin = false;
 
+      // Calculate next turn's possible moves if standing at newPosition with potential state
       let possibleMovesNextTurn: Position[] = [];
       if (!player.crashed) {
         const simPlayer = { ...player, position: newPosition, direction: newDirection, speed: newSpeed };
@@ -120,31 +128,40 @@ export function useGameEngine() {
         possibleMovesNextTurn = getValidMoves(simPlayer, track.size, players);
       }
 
-      let isCrashed = false;
-      let didSpin = false;
-
-      if (possibleMovesNextTurn.length === 0) {
-        isCrashed = true;
-      } else if (momentumDist > 1) {
-        isCrashed = true;
-      } else if (momentumDist === 1) {
-        didSpin = true;
-        toast("Player " + player.id + " spun out!", {
-          description: "Speed reset to 0",
-          duration: 2000
-        });
+      // If possibleMovesNextTurn has at least one move ON TRACK, all okay.
+      if (possibleMovesNextTurn.length > 0) {
+        // All good
+      } else {
+        // No possible valid moves on track for next turn
+        // Now check if there's ANY adjacent tile (8-connectivity) that is ON the board but OFF track.
+        const adjacents = getAllAdjacentPositions(newPosition, track.size);
+        const offTrackAdjacents = adjacents.filter(p =>
+          !trackTiles.some(tt => tt.x === p.x && tt.y === p.y)
+        );
+        if (offTrackAdjacents.length > 0) {
+          // SPIN condition: can "just" spin out—set position, speed=0, face random main direction
+          didSpin = true;
+          toast("Player " + player.id + " spun out!", {
+            description: "Facing a random direction and speed reset.",
+            duration: 2000
+          });
+        } else {
+          // CRASH condition: can't even spin, you're truly stuck/off track
+          isCrashed = true;
+          toast("Player " + player.id + " crashed!", {
+            description: "Out of the race",
+            duration: 3000
+          });
+        }
       }
 
+      // ------- RESULT: Apply logic for speed/position/direction -------
       if (isCrashed) {
         player.crashed = true;
         player.speed = 0;
-        toast("Player " + player.id + " crashed!", {
-          description: "Out of the race",
-          duration: 3000
-        });
       } else if (didSpin) {
         player.speed = 0;
-        player.direction = getReverseDirection(newDirection);
+        player.direction = pickRandomMainDirection();
         player.crashed = false;
       } else {
         player.crashed = false;
@@ -158,14 +175,19 @@ export function useGameEngine() {
       }
 
       player.position = newPosition;
-      player.direction = didSpin ? getReverseDirection(newDirection) : newDirection;
-      player.speed = isCrashed ? 0 : (didSpin ? 0 : newSpeed + speedBonus);
+      // After spin: keep random direction; otherwise, update normally
+      player.direction = didSpin
+        ? player.direction
+        : newDirection;
+      player.speed = isCrashed
+        ? 0
+        : (didSpin ? 0 : newSpeed + speedBonus);
 
       // Calculate momentum vector for log
       const momentumVector: [number, number] = [dx, dy];
 
       // Record the move in the log, including momentum
-      const speedChange = (player.speed - oldSpeed);
+      const speedChange = player.speed - oldSpeed;
       setMoveLog(prev => [
         ...prev,
         {
@@ -175,7 +197,9 @@ export function useGameEngine() {
           to: newPosition,
           round: currentRound,
           speedChange,
-          momentum: momentumVector
+          momentum: momentumVector,
+          // Custom: mark spin or crash in log for UI if you want later
+          event: isCrashed ? "crash" : didSpin ? "spin" : undefined
         }
       ]);
       (player as any).lastPosition = lastPosition;

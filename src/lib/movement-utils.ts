@@ -1,4 +1,3 @@
-
 import { Position, Direction, Player } from "@/types/game";
 import { tracks } from "@/lib/tracks";
 import { isValidPosition } from "./position-utils";
@@ -126,15 +125,24 @@ export function getValidMovesWithCollisions(player: Player, players: Player[], b
 // Base valid moves by momentum without checking collisions
 export function getValidMovesByMomentum(player: Player, boardSize: number): Position[] {
   if (player.crashed) return [];
-  // Get the track layout from the imported tracks
-  const trackLayout = tracks.oval; // always oval for now—could refactor for trackType
+  const trackLayout = tracks.oval; // always oval for now
   const currentPos = player.position;
 
-  // ---- Case 1: Speed is zero -> can move to any adjacent tile ON TRACK ----
+  // ---- Case 1: Speed is zero -> can move only "forward" in direction, and only if it's on the board and not occupied
   if (player.speed === 0) {
-    return getAllAdjacentPositions(currentPos, boardSize).filter(pos => 
-      trackLayout.trackTiles.some(tt => tt.x === pos.x && tt.y === pos.y)
-    );
+    const directionVectors: Record<Direction, [number, number]> = {
+      N: [0, -1], NE: [1, -1], E: [1, 0], SE: [1, 1],
+      S: [0, 1], SW: [-1, 1], W: [-1, 0], NW: [-1, -1]
+    };
+    const [dx, dy] = directionVectors[player.direction];
+    const forwardPos = { x: currentPos.x + dx, y: currentPos.y + dy };
+    if (
+      isValidPosition(forwardPos, boardSize) &&
+      trackLayout.trackTiles.some(tt => tt.x === forwardPos.x && tt.y === forwardPos.y)
+    ) {
+      return [forwardPos];
+    }
+    return []; // No forward move possible
   }
 
   // ---- Case 2: Use the last movement vector as momentum ----
@@ -169,8 +177,8 @@ export function getValidMovesByMomentum(player: Player, boardSize: number): Posi
   return validMoves;
 }
 
-// Helper function for adjacent positions
-function getAllAdjacentPositions(position: Position, boardSize: number): Position[] {
+// Helper function for adjacent positions (export for use in engine)
+export function getAllAdjacentPositions(position: Position, boardSize: number): Position[] {
   const { x, y } = position;
   const adjacent: Position[] = [];
   for (let dx = -1; dx <= 1; dx++) {
@@ -184,3 +192,6 @@ function getAllAdjacentPositions(position: Position, boardSize: number): Positio
   }
   return adjacent;
 }
+
+// Export only the ones needed for game engine use
+export {};
