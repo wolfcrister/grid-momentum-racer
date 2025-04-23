@@ -1,17 +1,9 @@
+
 import { Player, Position, Direction } from "@/types/game";
 import { isValidPosition, doesSegmentPassThroughTile } from "./position-utils";
 import { tracks } from "./tracks";
-
-// Get valid moves based on true momentum rules (vector-based)
-export function getValidMoves(player: Player, boardSize: number, allPlayers?: Player[]): Position[] {
-  // If allPlayers is provided, check for collisions with other players
-  if (allPlayers) {
-    return getValidMovesWithCollisions(player, allPlayers, boardSize);
-  }
-  
-  // Otherwise, just use the basic momentum rules
-  return getValidMovesByMomentum(player, boardSize);
-}
+import { getNewDirection } from "./movement/speed-direction-utils";
+import { getValidMovesWithCollisions } from "./movement/valid-moves-utils";
 
 // Check if there is a slipstream boost available
 export function checkSlipstream(
@@ -123,6 +115,3 @@ export function checkFinishLineCrossed(
   }
   return false;
 }
-
-// Import the required functions from movement-utils to fill the import dependencies
-import { getNewDirection, getValidMovesByMomentum, getValidMovesWithCollisions } from "./movement-utils";

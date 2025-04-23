@@ -19,7 +19,6 @@ import {
 
 // Import and re-export functions from gameplay-utils.ts
 import {
-  getValidMoves,
   checkSlipstream,
   distanceFromTrack,
   getReverseDirection,
@@ -44,11 +43,9 @@ export {
   doesSegmentPassThroughTile,
 
   // From gameplay-utils.ts
-  getValidMoves,
   checkSlipstream,
   distanceFromTrack,
   getReverseDirection,
   checkCheckpointCrossed,
   checkFinishLineCrossed,
 };
-

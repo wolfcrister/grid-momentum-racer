@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { GameMode, Player, Position } from "@/types/game";
 import { tracks } from "@/lib/tracks";
-import { getValidMoves } from "@/lib/game-utils";
+import { getValidMovesWithCollisions } from "@/lib/movement-utils";
 import { useTrackState } from "./useTrackState";
 import { usePlayersState } from "./usePlayersState";
 import { useGameModeState } from "./useGameModeState";
@@ -59,16 +59,17 @@ export function useGameEngine() {
     setValidMoves([]);
     setMoveLog([]);
     setProgrammedMoves({});
-  // eslint-disable-next-line
-  }, [playerCount, trackType, gameStarted, initializePlayers]);
+  }, [playerCount, trackType, gameStarted, initializePlayers, setTrack, setPlayers, 
+      setCurrentPlayer, setCurrentRound, setValidMoves, setMoveLog, setProgrammedMoves]);
 
   // Calculate valid moves when current player changes
   useEffect(() => {
     if (!gameStarted) return;
     const player = players[currentPlayer];
-    const moves = getValidMoves(player, track.size, players);
+    // Fix: Use getValidMovesWithCollisions directly instead of getValidMoves 
+    // which was causing an infinite loop
+    const moves = getValidMovesWithCollisions(player, players, track.size);
     setValidMoves(moves);
-    // eslint-disable-next-line
   }, [currentPlayer, players, track.size, gameStarted]);
 
   // Handle player movement
