@@ -2,8 +2,10 @@
 import { cn } from "@/lib/utils";
 import { Position, Direction, Player } from "@/types/game";
 import { useState, useEffect } from "react";
-import { MoveRight, MoveLeft, MoveUp, MoveDown, 
-        ArrowUpRight, ArrowUpLeft, ArrowDownRight, ArrowDownLeft } from "lucide-react";
+import { 
+  ArrowUp, ArrowDown, ArrowLeft, ArrowRight, 
+  ArrowUpRight, ArrowUpLeft, ArrowDownRight, ArrowDownLeft 
+} from "lucide-react";
 
 interface CarProps {
   player: Player;
@@ -35,39 +37,25 @@ export function Car({ player, position, direction, isActive }: CarProps) {
     }
   }, [position, prevPosition, player.speed, player.crashed]);
 
-  const getRotation = () => {
+  const getDirectionIcon = () => {
     switch (direction) {
-      case "N": return "rotate-0";
-      case "NE": return "rotate-45";
-      case "E": return "rotate-90";
-      case "SE": return "rotate-135";
-      case "S": return "rotate-180";
-      case "SW": return "rotate-[225deg]";
-      case "W": return "rotate-[270deg]";
-      case "NW": return "rotate-[315deg]";
-      default: return "rotate-0";
+      case "N": return <ArrowUp className="w-5 h-5" />;
+      case "NE": return <ArrowUpRight className="w-5 h-5" />;
+      case "E": return <ArrowRight className="w-5 h-5" />;
+      case "SE": return <ArrowDownRight className="w-5 h-5" />;
+      case "S": return <ArrowDown className="w-5 h-5" />;
+      case "SW": return <ArrowDownLeft className="w-5 h-5" />;
+      case "W": return <ArrowLeft className="w-5 h-5" />;
+      case "NW": return <ArrowUpLeft className="w-5 h-5" />;
+      default: return <ArrowUp className="w-5 h-5" />;
     }
   };
 
   const carColorClasses = {
-    red: player.crashed ? "bg-red-900/50 text-white" : "bg-primary text-white",
-    blue: player.crashed ? "bg-blue-900/50 text-white" : "bg-secondary text-white",
-    yellow: player.crashed ? "bg-yellow-900/50 text-black" : "bg-accent text-black",
-    green: player.crashed ? "bg-green-900/50 text-white" : "bg-green-500 text-white"
-  };
-
-  const getDirectionIcon = () => {
-    switch (direction) {
-      case "N": return <MoveUp className="w-3 h-3" />;
-      case "NE": return <ArrowUpRight className="w-3 h-3" />;
-      case "E": return <MoveRight className="w-3 h-3" />;
-      case "SE": return <ArrowDownRight className="w-3 h-3" />;
-      case "S": return <MoveDown className="w-3 h-3" />;
-      case "SW": return <ArrowDownLeft className="w-3 h-3" />;
-      case "W": return <MoveLeft className="w-3 h-3" />;
-      case "NW": return <ArrowUpLeft className="w-3 h-3" />;
-      default: return <MoveUp className="w-3 h-3" />;
-    }
+    red: player.crashed ? "bg-red-900/50 border-red-900" : "bg-primary border-primary-foreground",
+    blue: player.crashed ? "bg-blue-900/50 border-blue-900" : "bg-secondary border-secondary-foreground",
+    yellow: player.crashed ? "bg-yellow-900/50 border-yellow-900" : "bg-accent border-accent-foreground",
+    green: player.crashed ? "bg-green-900/50 border-green-900" : "bg-green-500 border-green-500"
   };
 
   return (
@@ -87,10 +75,9 @@ export function Car({ player, position, direction, isActive }: CarProps) {
     >
       <div
         className={cn(
-          "w-[65%] h-[65%] flex items-center justify-center",
-          "transition-transform duration-300 shadow-lg",
+          "w-[65%] h-[65%] flex items-center justify-center rounded-full",
+          "transition-transform duration-300 shadow-lg border-2",
           carColorClasses[player.color as keyof typeof carColorClasses],
-          "rounded-md",
           animating && "scale-110",
           spinning && "animate-spin",
           isActive && "ring-2 ring-white",
@@ -98,14 +85,17 @@ export function Car({ player, position, direction, isActive }: CarProps) {
         )}
       >
         <div className="relative w-full h-full flex items-center justify-center">
-          <div className="absolute inset-0 flex items-center justify-center font-bold text-sm">
-            {player.id}
-          </div>
-          
-          <div className="absolute bottom-0.5 right-0.5">
+          {/* Direction indicator */}
+          <div className="text-foreground">
             {getDirectionIcon()}
           </div>
           
+          {/* Player ID */}
+          <div className="absolute top-0 left-0 bg-background rounded-full w-4 h-4 flex items-center justify-center text-[10px] font-bold">
+            {player.id}
+          </div>
+          
+          {/* Status indicators */}
           {player.crashed && (
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="text-white font-bold text-xs bg-red-800/70 px-1 rounded rotate-0">
@@ -124,17 +114,20 @@ export function Car({ player, position, direction, isActive }: CarProps) {
         </div>
       </div>
       
+      {/* Momentum indicators */}
       {player.speed > 0 && !player.crashed && (
-        <div className="absolute -bottom-3 left-1/2 transform -translate-x-1/2 flex space-x-0.5">
-          {Array.from({ length: player.speed }).map((_, i) => (
-            <div 
-              key={i} 
-              className={cn(
-                "w-1 h-1 rounded-full",
-                carColorClasses[player.color as keyof typeof carColorClasses]
-              )}
-            ></div>
-          ))}
+        <div className="absolute bottom-0 left-0 w-full">
+          <div className={cn(
+            "flex justify-center gap-0.5 mt-1", 
+            carColorClasses[player.color as keyof typeof carColorClasses]
+          )}>
+            {Array.from({ length: player.speed }).map((_, i) => (
+              <div 
+                key={i} 
+                className="w-1 h-1 rounded-full bg-current"
+              ></div>
+            ))}
+          </div>
         </div>
       )}
     </div>
