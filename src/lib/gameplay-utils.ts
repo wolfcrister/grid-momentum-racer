@@ -127,7 +127,7 @@ export function checkFinishLineCrossed(
 }
 
 // Check if a position would result in a crash (not on track)
-export function checkCrash(position: Position, trackTiles: Position[] = tracks.oval.trackTiles): boolean {
+export function checkCrash(position: Position, trackTiles: Position[]): boolean {
   return !trackTiles.some(tt => tt.x === position.x && tt.y === position.y);
 }
 
