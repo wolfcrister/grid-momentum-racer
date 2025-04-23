@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Player, Position, Track, Direction } from "@/types/game";
 import { tracks } from "@/lib/tracks";
@@ -74,13 +75,14 @@ export function usePlayersState(
       possibleMovesNextTurn = getValidMoves(simPlayer, track.size, updatedPlayers);
 
       if (possibleMovesNextTurn.length === 0) {
-        const adjacents = getAllAdjacentPositions(newPosition, track.size);
+        const adjacents = getAllAdjacentPositions(simPlayer.position, track.size);
         const offTrackAdjacents = adjacents.filter(p =>
           !trackTiles.some(tt => tt.x === p.x && tt.y === p.y)
         );
         if (offTrackAdjacents.length > 0) {
           didSpin = true;
-          toast("Player " + player.id + " spun out!", {
+          toast({
+            title: "Player " + player.id + " spun out!",
             description: "Facing a random direction and speed reset.",
             duration: 2000
           });
@@ -130,7 +132,8 @@ export function usePlayersState(
         const newPassed = new Set(player.checkpointsPassed);
         newPassed.add(cpIndex);
         player.checkpointsPassed = newPassed;
-        toast("Checkpoint passed!", {
+        toast({
+          title: "Checkpoint passed!",
           description: `Player ${player.id}: ${player.checkpointsPassed.size}/${player.totalCheckpoints}`,
           duration: 2000
         });
@@ -142,7 +145,8 @@ export function usePlayersState(
       ) {
         player.isFinished = true;
         setWinner(player);
-        toast("Winner!", {
+        toast({
+          title: "Winner!",
           description: `Player ${player.id} has won the race!`,
           duration: 5000
         });

@@ -1,5 +1,5 @@
 
-import { Player, Position } from "@/types/game";
+import { Player, Position, Direction } from "@/types/game";
 import { tracks } from "@/lib/tracks";
 import { getAllAdjacentPositions } from "./position-utils";
 import { getLastDelta } from "./speed-direction-utils";
@@ -88,4 +88,3 @@ function isValidTrackPosition(position: Position, boardSize: number): boolean {
   }
   return tracks.oval.trackTiles.some(tt => tt.x === position.x && tt.y === position.y);
 }
-
