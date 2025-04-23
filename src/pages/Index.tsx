@@ -1,390 +1,42 @@
-import React, { useState, useEffect } from "react";
+
+import React from "react";
 import { GameBoard } from "@/components/GameBoard";
 import { GameControls } from "@/components/GameControls";
 import { GameStatus } from "@/components/GameStatus";
-import { MoveLog, MoveLogEntry } from "@/components/MoveLog";
-import { 
-  Player, 
-  Position, 
-  Track, 
-  GameMode,
-  Direction,
-  PlayerColor
-} from "@/types/game";
-import { 
-  getValidMoves, 
-  getNewDirection, 
-  calculateNewSpeed,
-  checkSlipstream,
-  checkCheckpointCrossed,
-  checkFinishLineCrossed,
-  checkCrash,
-  distanceFromTrack,
-  getReverseDirection,
-  getLastDelta
-} from "@/lib/game-utils";
+import { MoveLog } from "@/components/MoveLog";
 import { Button } from "@/components/ui/button";
 import { tracks } from "@/lib/tracks";
-import { toast } from "@/components/ui/sonner";
-
-const playerColors = ["red", "blue", "yellow", "green"] as const;
+import { StartScreen } from "@/components/StartScreen";
+import { useGameEngine } from "@/hooks/useGameEngine";
 
 const Index = () => {
-  // Game state
-  const [trackType, setTrackType] = useState<keyof typeof tracks>("oval");
-  const [gameStarted, setGameStarted] = useState(false);
-  const [playerCount, setPlayerCount] = useState(2);
-  const [track, setTrack] = useState<Track>(tracks[trackType]);
-  const [players, setPlayers] = useState<Player[]>([]);
-  const [currentPlayer, setCurrentPlayer] = useState(0);
-  const [currentRound, setCurrentRound] = useState(1);
-  const [winner, setWinner] = useState<Player | null>(null);
-  const [validMoves, setValidMoves] = useState<Position[]>([]);
-  const [gameMode, setGameMode] = useState<GameMode>("turn-based");
-  const [programmedMoves, setProgrammedMoves] = useState<Record<number, Position>>({});
-  const [moveLog, setMoveLog] = useState<MoveLogEntry[]>([]);
+  const {
+    trackType, setTrackType,
+    gameStarted, setGameStarted,
+    playerCount, setPlayerCount,
+    track, players,
+    currentPlayer,
+    currentRound,
+    winner,
+    validMoves,
+    gameMode, setGameMode,
+    handleMove,
+    handleReset,
+    moveLog,
+    handleSkipTurn,
+  } = useGameEngine();
 
-  // Initialize game
-  useEffect(() => {
-    if (gameStarted) return;
-    
-    const newTrack = tracks[trackType];
-    setTrack(newTrack);
-
-    // Initialize players at starting positions
-    const initialPlayers: Player[] = [];
-    for (let i = 0; i < playerCount; i++) {
-      const startPos = newTrack.startPositions[i];
-      initialPlayers.push({
-        id: i + 1,
-        position: { ...startPos.position },
-        direction: startPos.direction,
-        speed: 0,
-        color: playerColors[i] as PlayerColor,
-        checkpointsPassed: new Set(),
-        totalCheckpoints: newTrack.checkpoints.length,
-        isFinished: false,
-        crashed: false
-      });
-    }
-
-    setPlayers(initialPlayers);
-    setCurrentPlayer(0);
-    setWinner(null);
-    setCurrentRound(1);
-  }, [playerCount, trackType, gameStarted]);
-
-  // Calculate valid moves when current player changes
-  useEffect(() => {
-    if (!gameStarted) return;
-    
-    const player = players[currentPlayer];
-    const moves = getValidMoves(player, track.size, players);
-    setValidMoves(moves);
-  }, [currentPlayer, players, track.size, gameStarted]);
-
-  // Handle player movement
-  const handleMove = (position: Position) => {
-    if (gameMode === "programming") {
-      // Store the programmed move
-      setProgrammedMoves({
-        ...programmedMoves,
-        [currentPlayer]: position
-      });
-      
-      // Move to next player
-      const nextPlayer = (currentPlayer + 1) % playerCount;
-      if (nextPlayer === 0) {
-        // All players have programmed their moves, execute them
-        executeAllMoves();
-      } else {
-        setCurrentPlayer(nextPlayer);
-      }
-    } else {
-      // Turn-based mode: execute move immediately
-      executeMove(currentPlayer, position);
-      
-      // Move to next player
-      const nextPlayer = (currentPlayer + 1) % playerCount;
-      if (nextPlayer === 0) {
-        setCurrentRound(currentRound + 1);
-      }
-      setCurrentPlayer(nextPlayer);
-    }
-  };
-
-  // Execute move for a single player
-  const executeMove = (playerIndex: number, newPosition: Position) => {
-    setPlayers(prevPlayers => {
-      const updatedPlayers = [...prevPlayers];
-      const player = { ...updatedPlayers[playerIndex] };
-
-      // Save the last position for momentum calculation
-      const lastPosition = { ...player.position };
-      const { trackTiles } = track;
-
-      // Calculate new direction and speed
-      const newDirection = getNewDirection(player.position, newPosition);
-      const oldSpeed = player.speed;
-      const newSpeed = calculateNewSpeed(player, newPosition);
-
-      // Which tile would their MOMENTUM (vector) move take them to next?
-      const dx = newPosition.x - lastPosition.x;
-      const dy = newPosition.y - lastPosition.y;
-      const momentumPos = { x: newPosition.x + dx, y: newPosition.y + dy };
-
-      // Helper: how far off-track is the actual move & the momentum move?
-      const actualMoveDist = distanceFromTrack(newPosition, trackTiles);
-      const momentumDist = distanceFromTrack(momentumPos, trackTiles);
-
-      // Check for crash if no valid moves exist at this position next turn!
-      // If NONE of next moves are on track, crash the player
-      let possibleMovesNextTurn: Position[] = [];
-      if (!player.crashed) {
-        const simPlayer = { ...player, position: newPosition, direction: newDirection, speed: newSpeed };
-        (simPlayer as any).lastPosition = lastPosition; // for momentum
-        possibleMovesNextTurn = getValidMoves(simPlayer, track.size, players);
-      }
-
-      // Crash logic:
-      // 1. If there are zero valid moves for next turn, CRASH the player
-      // 2. If MOMENTUM would take them >1 off track: crash (out)
-      // 3. If exactly 1 off: spin, zero speed, reverse direction, but keep in-game
-
-      let isCrashed = false;
-      let didSpin = false;
-
-      if (possibleMovesNextTurn.length === 0) {
-        isCrashed = true;
-      } else if (momentumDist > 1) {
-        isCrashed = true;
-      } else if (momentumDist === 1) {
-        // SPIN: stay in game, set speed 0, reverse direction
-        didSpin = true;
-        // Show a toast indicating a spin
-        toast("Player " + player.id + " spun out!", {
-          description: "Speed reset to 0",
-          duration: 2000
-        });
-      }
-
-      if (isCrashed) {
-        player.crashed = true;
-        player.speed = 0;
-        toast("Player " + player.id + " crashed!", {
-          description: "Out of the race",
-          duration: 3000
-        });
-      } else if (didSpin) {
-        player.speed = 0;
-        player.direction = getReverseDirection(newDirection);
-        player.crashed = false; // merely spun, not out
-      } else {
-        player.crashed = false;
-      }
-
-      // Check for slipstream (only if not crashed)
-      let speedBonus = 0;
-      if (!isCrashed && !didSpin) {
-        const otherPlayers = prevPlayers.filter((_, i) => i !== playerIndex);
-        const hasSlipstream = checkSlipstream(player, otherPlayers, newPosition);
-        speedBonus = hasSlipstream ? 1 : 0;
-      }
-
-      // Update player position and speed
-      player.position = newPosition;
-      player.direction = didSpin ? getReverseDirection(newDirection) : newDirection;
-      player.speed = isCrashed ? 0 : (didSpin ? 0 : newSpeed + speedBonus);
-
-      // Calculate momentum vector for log
-      const momentumVector: [number, number] = [dx, dy];
-
-      // Record the move in the log
-      const speedChange = (player.speed - oldSpeed);
-      setMoveLog(prev => [
-        ...prev,
-        {
-          playerId: player.id,
-          playerColor: player.color,
-          from: lastPosition,
-          to: newPosition,
-          round: currentRound,
-          speedChange: speedChange,
-          momentum: momentumVector
-        }
-      ]);
-
-      // Store the last position for true momentum calculation!
-      (player as any).lastPosition = lastPosition;
-
-      // Check if crossed checkpoint line/unit (only if not crashed)
-      if (!isCrashed) {
-        // Type fixing: ensure we're working with checkpoints as Position[][]
-        const checkpointLines = track.checkpoints;
-        const cpIndex = checkCheckpointCrossed(lastPosition, newPosition, checkpointLines);
-        if (
-          cpIndex !== null &&
-          !player.checkpointsPassed.has(cpIndex) &&
-          player.checkpointsPassed.size < player.totalCheckpoints
-        ) {
-          const newPassed = new Set(player.checkpointsPassed);
-          newPassed.add(cpIndex);
-          player.checkpointsPassed = newPassed;
-          
-          // Show a toast for checkpoint
-          toast("Checkpoint passed!", {
-            description: `Player ${player.id}: ${player.checkpointsPassed.size}/${player.totalCheckpoints}`,
-            duration: 2000
-          });
-        }
-      }
-
-      // Check if crossed finish line (only if not crashed & all checkpoints collected)
-      if (
-        !isCrashed &&
-        player.checkpointsPassed.size === player.totalCheckpoints &&
-        checkFinishLineCrossed(lastPosition, newPosition, track.finishLine)
-      ) {
-        player.isFinished = true;
-        setWinner(player);
-        
-        // Show a toast for winning
-        toast("Winner!", {
-          description: `Player ${player.id} has won the race!`,
-          duration: 5000
-        });
-      }
-
-      updatedPlayers[playerIndex] = player;
-      return updatedPlayers;
-    });
-  };
-
-  // Execute all programmed moves
-  const executeAllMoves = () => {
-    // Execute in player order
-    for (let i = 0; i < playerCount; i++) {
-      if (programmedMoves[i]) {
-        executeMove(i, programmedMoves[i]);
-      }
-    }
-    
-    // Reset programmed moves
-    setProgrammedMoves({});
-    
-    // Next round
-    setCurrentRound(currentRound + 1);
-  };
-
-  // Skip turn
-  const handleSkipTurn = () => {
-    if (gameMode === "programming") {
-      setProgrammedMoves({
-        ...programmedMoves,
-        [currentPlayer]: players[currentPlayer].position
-      });
-    }
-    
-    const nextPlayer = (currentPlayer + 1) % playerCount;
-    if (nextPlayer === 0) {
-      if (gameMode === "programming") {
-        executeAllMoves();
-      } else {
-        setCurrentRound(currentRound + 1);
-      }
-    }
-    setCurrentPlayer(nextPlayer);
-  };
-
-  // Reset game
-  const handleReset = () => {
-    setGameStarted(false);
-    setProgrammedMoves({});
-    setWinner(null);
-    setMoveLog([]);
-  };
-
-  // Start screen
   if (!gameStarted) {
     return (
-      <div className="min-h-screen bg-background text-foreground flex flex-col items-center justify-center p-4">
-        <div className="w-full max-w-2xl">
-          <div className="text-center mb-12">
-            <h1 className="text-5xl font-bold tracking-tighter mb-4 text-primary">
-              GRID RACER
-            </h1>
-            <p className="text-xl text-muted-foreground">
-              Chess meets Formula 1 — on a tactical battlefield of momentum and precision.
-            </p>
-          </div>
-          
-          <div className="space-y-6 bg-card p-6 rounded-lg shadow-lg border border-border">
-            <div>
-              <label className="text-lg font-medium mb-2 block">Number of Players</label>
-              <div className="flex gap-2">
-                {[2, 3, 4].map(num => (
-                  <Button
-                    key={num}
-                    variant={playerCount === num ? "default" : "outline"}
-                    onClick={() => setPlayerCount(num)}
-                  >
-                    {num} Players
-                  </Button>
-                ))}
-              </div>
-            </div>
-            
-            <div>
-              <label className="text-lg font-medium mb-2 block">Track Layout</label>
-              <div className="flex gap-2">
-                {Object.keys(tracks).map(type => (
-                  <Button
-                    key={type}
-                    variant={trackType === type ? "default" : "outline"}
-                    onClick={() => setTrackType(type as keyof typeof tracks)}
-                  >
-                    {type.charAt(0).toUpperCase() + type.slice(1)}
-                  </Button>
-                ))}
-              </div>
-            </div>
-            
-            <div>
-              <label className="text-lg font-medium mb-2 block">Game Mode</label>
-              <div className="flex gap-2">
-                {["turn-based", "programming"].map(mode => (
-                  <Button
-                    key={mode}
-                    variant={gameMode === mode ? "default" : "outline"}
-                    onClick={() => setGameMode(mode as GameMode)}
-                  >
-                    {mode === "turn-based" ? "Turn Based" : "Programming"}
-                  </Button>
-                ))}
-              </div>
-            </div>
-            
-            <Button 
-              size="lg" 
-              className="w-full mt-6" 
-              onClick={() => setGameStarted(true)}
-            >
-              Start Race
-            </Button>
-          </div>
-          
-          <div className="mt-8 p-6 bg-card rounded-lg border border-border">
-            <h2 className="text-xl font-bold mb-4">How to Play</h2>
-            <ul className="space-y-2 text-muted-foreground">
-              <li>• <strong>Momentum is key:</strong> Your previous move determines your options</li>
-              <li>• <strong>Choose wisely:</strong> Select from valid move options (highlighted)</li>
-              <li>• <strong>Hit checkpoints:</strong> Pass all checkpoints before finishing</li>
-              <li>• <strong>Use slipstream:</strong> Follow closely behind opponents for speed boosts</li>
-              <li>• <strong>Reach the finish:</strong> Cross the checkered line after all checkpoints</li>
-            </ul>
-          </div>
-        </div>
-      </div>
+      <StartScreen
+        playerCount={playerCount}
+        setPlayerCount={setPlayerCount}
+        trackType={trackType}
+        setTrackType={setTrackType}
+        gameMode={gameMode}
+        setGameMode={setGameMode}
+        setGameStarted={setGameStarted}
+      />
     );
   }
 
@@ -394,7 +46,6 @@ const Index = () => {
         <header className="mb-6">
           <h1 className="text-4xl font-bold text-primary text-center">GRID RACER</h1>
         </header>
-        
         <div className="grid gap-6 md:grid-cols-[1fr_300px]">
           <div className="space-y-6">
             <GameControls
@@ -406,7 +57,6 @@ const Index = () => {
               onSkipTurn={handleSkipTurn}
               canSkipTurn={true}
             />
-            
             <GameBoard
               size={track.size}
               players={players}
@@ -416,17 +66,14 @@ const Index = () => {
               checkpoints={track.checkpoints}
               finishLine={track.finishLine}
             />
-            
             <MoveLog moves={moveLog} maxEntries={20} />
           </div>
-          
           <aside>
             <GameStatus
               players={players}
               currentRound={currentRound}
               winner={winner}
             />
-            
             {winner && (
               <div className="mt-4 p-4 bg-accent text-accent-foreground rounded-lg text-center animate-pulse">
                 <h3 className="text-xl font-bold mb-2">Player {winner.id} Wins!</h3>
@@ -435,7 +82,6 @@ const Index = () => {
                 </Button>
               </div>
             )}
-            
             <div className="mt-4 p-4 bg-card rounded-lg border border-border">
               <h3 className="font-bold mb-2">Game Tips</h3>
               <ul className="text-sm space-y-1 text-muted-foreground">
