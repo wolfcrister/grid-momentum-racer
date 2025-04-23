@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import {
   Player,
@@ -80,7 +81,7 @@ export function useMoveExecution(
       let didSpin = false;
 
       // Check if the new position would result in a crash
-      // Fixed: Pass only the position to checkCrash
+      // Pass only the position to checkCrash
       isCrashed = checkCrash(newPosition);
 
       // Calculate next turn's possible moves if standing at newPosition with potential state
