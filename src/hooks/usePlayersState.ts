@@ -78,6 +78,7 @@ export function usePlayersState(
       let didSpin = false;
 
       // Check if the new position would result in a crash
+      // FIX: Only pass the newPosition argument to checkCrash
       isCrashed = checkCrash(newPosition);
 
       // Calculate next turn's possible moves if standing at newPosition with potential state
@@ -189,7 +190,7 @@ export function usePlayersState(
     players, setPlayers,
     currentPlayer, setCurrentPlayer,
     currentRound: currentRoundState, setCurrentRound,
-    winner, setWinner,
+    winner, setWinner: _setWinner,
     initializePlayers,
     executeMove,
   };
