@@ -1,4 +1,5 @@
-import React, { useEffect } from "react";
+
+import React from "react";
 import { cn } from "@/lib/utils";
 import { GridTile } from "./GridTile";
 import { Car } from "./Car";
@@ -11,7 +12,7 @@ interface GameBoardProps {
   currentPlayer: number;
   onMove: (position: Position) => void;
   validMoves: Position[];
-  checkpoints: Position[][];  // Changed from Position[] to Position[][] to match Track type
+  checkpoints: Position[];
   finishLine: Position[];
 }
 
@@ -24,15 +25,10 @@ export function GameBoard({
   checkpoints,
   finishLine
 }: GameBoardProps) {
-  // Log valid moves for debugging
-  useEffect(() => {
-    console.log("GameBoard received validMoves:", validMoves);
-  }, [validMoves]);
-
   // Calculate the momentum position for the current player
   const getMomentumPosition = () => {
     const player = players[currentPlayer];
-    if (player.speed === 0) return null;
+    if (player.crashed || player.speed === 0) return null;
 
     // For vector-based momentum, we need to use the last movement delta
     // This is stored on the player as lastPosition
@@ -63,12 +59,9 @@ export function GameBoard({
 
   const renderTile = (x: number, y: number) => {
     const position: Position = { x, y };
-    // Update how we check for checkpoint tiles to handle the 2D array structure
-    const isCheckpoint = checkpoints.some(checkpointLine => 
-      checkpointLine.some(cp => cp.x === x && cp.y === y)
-    );
+    const isCheckpoint = checkpoints.some(cp => cp.x === x && cp.y === y);
     const isFinish = finishLine.some(fl => fl.x === x && fl.y === y);
-    const isValidMove = validMoves.some(vm => vm.x === x && vm.y === y);
+    const isValidMove = validMoves.some(vm => vm.x === x && vm.y === y) && !players[currentPlayer].crashed;
     const isTrackTile = tracks.oval.trackTiles.some(tt => tt.x === x && tt.y === y);
     
     // Determine if this is the momentum position
@@ -84,12 +77,7 @@ export function GameBoard({
         isValidMove={isValidMove}
         isMomentumPosition={isMomentumPosition}
         isTrackTile={isTrackTile}
-        onClick={() => {
-          console.log("Tile clicked:", position, "isValidMove:", isValidMove);
-          if (isValidMove) {
-            onMove(position);
-          }
-        }}
+        onClick={() => isValidMove && onMove(position)}
       />
     );
   };
@@ -104,8 +92,7 @@ export function GameBoard({
         style={{
           gridTemplateColumns: `repeat(${size}, 1fr)`,
           aspectRatio: "1/1",
-          position: "relative",
-          ...({ '--gridSize': size } as React.CSSProperties)
+          position: "relative"
         }}
       >
         {Array.from({ length: size * size }).map((_, index) => {
@@ -123,12 +110,6 @@ export function GameBoard({
             direction={player.direction}
           />
         ))}
-      </div>
-      
-      {/* Debug info */}
-      <div className="mt-2 p-2 bg-muted/50 text-xs rounded">
-        <div>Valid moves: {validMoves.length} ({validMoves.map(m => `[${m.x},${m.y}]`).join(", ")})</div>
-        <div>Current player: {currentPlayer + 1} at position [{players[currentPlayer]?.position.x}, {players[currentPlayer]?.position.y}]</div>
       </div>
     </div>
   );

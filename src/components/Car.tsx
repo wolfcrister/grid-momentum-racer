@@ -2,10 +2,8 @@
 import { cn } from "@/lib/utils";
 import { Position, Direction, Player } from "@/types/game";
 import { useState, useEffect } from "react";
-import { 
-  ArrowUp, ArrowDown, ArrowLeft, ArrowRight, 
-  ArrowUpRight, ArrowUpLeft, ArrowDownRight, ArrowDownLeft 
-} from "lucide-react";
+import { MoveRight, MoveLeft, MoveUp, MoveDown, 
+        ArrowUpRight, ArrowUpLeft, ArrowDownRight, ArrowDownLeft } from "lucide-react";
 
 interface CarProps {
   player: Player;
@@ -24,7 +22,7 @@ export function Car({ player, position, direction, isActive }: CarProps) {
       setAnimating(true);
       
       // Check if this was a spin (speed went to 0 but not crashed)
-      if (player.speed === 0) {
+      if (player.speed === 0 && !player.crashed) {
         setSpinning(true);
         setTimeout(() => setSpinning(false), 1000);
       }
@@ -35,27 +33,41 @@ export function Car({ player, position, direction, isActive }: CarProps) {
       }, 300);
       return () => clearTimeout(timer);
     }
-  }, [position, prevPosition, player.speed]);
+  }, [position, prevPosition, player.speed, player.crashed]);
 
-  const getDirectionIcon = () => {
+  const getRotation = () => {
     switch (direction) {
-      case "N": return <ArrowUp className="w-5 h-5" />;
-      case "NE": return <ArrowUpRight className="w-5 h-5" />;
-      case "E": return <ArrowRight className="w-5 h-5" />;
-      case "SE": return <ArrowDownRight className="w-5 h-5" />;
-      case "S": return <ArrowDown className="w-5 h-5" />;
-      case "SW": return <ArrowDownLeft className="w-5 h-5" />;
-      case "W": return <ArrowLeft className="w-5 h-5" />;
-      case "NW": return <ArrowUpLeft className="w-5 h-5" />;
-      default: return <ArrowUp className="w-5 h-5" />;
+      case "N": return "rotate-0";
+      case "NE": return "rotate-45";
+      case "E": return "rotate-90";
+      case "SE": return "rotate-135";
+      case "S": return "rotate-180";
+      case "SW": return "rotate-[225deg]";
+      case "W": return "rotate-[270deg]";
+      case "NW": return "rotate-[315deg]";
+      default: return "rotate-0";
     }
   };
 
   const carColorClasses = {
-    red: "bg-primary border-primary-foreground",
-    blue: "bg-secondary border-secondary-foreground",
-    yellow: "bg-accent border-accent-foreground",
-    green: "bg-green-500 border-green-500"
+    red: player.crashed ? "bg-red-900/50 text-white" : "bg-primary text-white",
+    blue: player.crashed ? "bg-blue-900/50 text-white" : "bg-secondary text-white",
+    yellow: player.crashed ? "bg-yellow-900/50 text-black" : "bg-accent text-black",
+    green: player.crashed ? "bg-green-900/50 text-white" : "bg-green-500 text-white"
+  };
+
+  const getDirectionIcon = () => {
+    switch (direction) {
+      case "N": return <MoveUp className="w-3 h-3" />;
+      case "NE": return <ArrowUpRight className="w-3 h-3" />;
+      case "E": return <MoveRight className="w-3 h-3" />;
+      case "SE": return <ArrowDownRight className="w-3 h-3" />;
+      case "S": return <MoveDown className="w-3 h-3" />;
+      case "SW": return <ArrowDownLeft className="w-3 h-3" />;
+      case "W": return <MoveLeft className="w-3 h-3" />;
+      case "NW": return <ArrowUpLeft className="w-3 h-3" />;
+      default: return <MoveUp className="w-3 h-3" />;
+    }
   };
 
   return (
@@ -65,38 +77,44 @@ export function Car({ player, position, direction, isActive }: CarProps) {
         "transition-all duration-300 ease-out"
       )}
       style={{
-        width: 'calc(100% / var(--gridSize))',
-        height: 'calc(100% / var(--gridSize))',
-        top: `calc(${position.y} * 100% / var(--gridSize))`,
-        left: `calc(${position.x} * 100% / var(--gridSize))`,
+        width: 'calc(100% / var(--grid-size))',
+        height: 'calc(100% / var(--grid-size))',
+        top: `calc(${position.y} * 100% / var(--grid-size))`,
+        left: `calc(${position.x} * 100% / var(--grid-size))`,
         zIndex: isActive ? 20 : 10,
-        // Updated variable name to match GameBoard.tsx
-        '--gridSize': 20, // Default size, will be overridden by CSS variables
+        '--grid-size': 20, // Default size, will be overridden by CSS variables
       } as React.CSSProperties}
     >
       <div
         className={cn(
-          "w-[65%] h-[65%] flex items-center justify-center rounded-full",
-          "transition-transform duration-300 shadow-lg border-2",
+          "w-[65%] h-[65%] flex items-center justify-center",
+          "transition-transform duration-300 shadow-lg",
           carColorClasses[player.color as keyof typeof carColorClasses],
+          "rounded-md",
           animating && "scale-110",
           spinning && "animate-spin",
-          isActive && "ring-2 ring-white"
+          isActive && "ring-2 ring-white",
+          player.crashed && "opacity-60 grayscale"
         )}
       >
         <div className="relative w-full h-full flex items-center justify-center">
-          {/* Direction indicator */}
-          <div className="text-foreground">
-            {getDirectionIcon()}
-          </div>
-          
-          {/* Player ID */}
-          <div className="absolute top-0 left-0 bg-background rounded-full w-4 h-4 flex items-center justify-center text-[10px] font-bold">
+          <div className="absolute inset-0 flex items-center justify-center font-bold text-sm">
             {player.id}
           </div>
           
-          {/* Spin indicator */}
-          {spinning && (
+          <div className="absolute bottom-0.5 right-0.5">
+            {getDirectionIcon()}
+          </div>
+          
+          {player.crashed && (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="text-white font-bold text-xs bg-red-800/70 px-1 rounded rotate-0">
+                X
+              </div>
+            </div>
+          )}
+          
+          {spinning && !player.crashed && (
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="text-white font-bold text-xs bg-orange-500/70 px-1 rounded rotate-0">
                 SPIN
@@ -106,20 +124,17 @@ export function Car({ player, position, direction, isActive }: CarProps) {
         </div>
       </div>
       
-      {/* Momentum indicators */}
-      {player.speed > 0 && (
-        <div className="absolute bottom-0 left-0 w-full">
-          <div className={cn(
-            "flex justify-center gap-0.5 mt-1", 
-            carColorClasses[player.color as keyof typeof carColorClasses]
-          )}>
-            {Array.from({ length: player.speed }).map((_, i) => (
-              <div 
-                key={i} 
-                className="w-1 h-1 rounded-full bg-current"
-              ></div>
-            ))}
-          </div>
+      {player.speed > 0 && !player.crashed && (
+        <div className="absolute -bottom-3 left-1/2 transform -translate-x-1/2 flex space-x-0.5">
+          {Array.from({ length: player.speed }).map((_, i) => (
+            <div 
+              key={i} 
+              className={cn(
+                "w-1 h-1 rounded-full",
+                carColorClasses[player.color as keyof typeof carColorClasses]
+              )}
+            ></div>
+          ))}
         </div>
       )}
     </div>

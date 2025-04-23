@@ -37,54 +37,7 @@ function generateOvalTrackTiles() {
   return trackTiles;
 }
 
-// Generate a simple figure-8 track on a 12x12 grid
-function generateFigure8TrackTiles() {
-  const trackTiles: Position[] = [];
-  const size = 12;
-  
-  // Horizontal parts
-  for (let x = 1; x < size - 1; x++) {
-    // Top row
-    trackTiles.push({ x, y: 1 });
-    trackTiles.push({ x, y: 2 });
-    
-    // Middle rows
-    if (x !== 5 && x !== 6) {
-      trackTiles.push({ x, y: 5 });
-      trackTiles.push({ x, y: 6 });
-    }
-    
-    // Bottom row
-    trackTiles.push({ x, y: 9 });
-    trackTiles.push({ x, y: 10 });
-  }
-  
-  // Vertical parts
-  for (let y = 1; y < size - 1; y++) {
-    // Left column
-    if (y !== 5 && y !== 6) {
-      trackTiles.push({ x: 1, y });
-      trackTiles.push({ x: 2, y });
-    }
-    
-    // Middle column (except where horizontal bars pass)
-    if (y !== 1 && y !== 2 && y !== 5 && y !== 6 && y !== 9 && y !== 10) {
-      trackTiles.push({ x: 5, y });
-      trackTiles.push({ x: 6, y });
-    }
-    
-    // Right column
-    if (y !== 5 && y !== 6) {
-      trackTiles.push({ x: 9, y });
-      trackTiles.push({ x: 10, y });
-    }
-  }
-  
-  return trackTiles;
-}
-
 const ovalTrackTiles = generateOvalTrackTiles();
-const figure8TrackTiles = generateFigure8TrackTiles();
 
 // --- Track setup constants ---
 const size = 20;
@@ -134,9 +87,11 @@ export const tracks = {
   figure8: {
     size: 12,
     checkpoints: [
-      // Checkpoints for figure8 track
-      verticalLine(9, 3, 5),
-      verticalLine(2, 7, 9),
+      // Placeholders for unit-style checkpoint lines (could be refactored further if needed)
+      [{ x: 3, y: 3 }],
+      [{ x: 9, y: 3 }],
+      [{ x: 9, y: 9 }],
+      [{ x: 3, y: 9 }],
     ],
     finishLine: [
       { x: 6, y: 1 },
@@ -148,6 +103,6 @@ export const tracks = {
       { position: { x: 8, y: 1 }, direction: "W" as Direction },
       { position: { x: 8, y: 2 }, direction: "W" as Direction },
     ],
-    trackTiles: figure8TrackTiles,
+    trackTiles: [],
   },
 };

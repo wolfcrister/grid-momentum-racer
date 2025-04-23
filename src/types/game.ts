@@ -18,7 +18,7 @@ export type Player = {
   checkpointsPassed: Set<number>;
   totalCheckpoints: number;
   isFinished: boolean;
-  trackTiles?: Position[]; // Added to store reference to track tiles
+  crashed: boolean;
 };
 
 export type GameMode = "turn-based" | "programming";
