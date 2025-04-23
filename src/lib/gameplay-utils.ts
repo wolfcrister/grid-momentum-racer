@@ -128,9 +128,10 @@ export function checkFinishLineCrossed(
 }
 
 // Check if a position would result in a crash (not on track)
-// This function only takes a position parameter
-export function checkCrash(position: Position): boolean {
-  return !tracks.oval.trackTiles.some(tt => tt.x === position.x && tt.y === position.y);
+// Accepts either just a position (defaults to oval track), or position + trackTiles
+export function checkCrash(position: Position, trackTiles?: Position[]): boolean {
+  const tiles = trackTiles ?? tracks.oval.trackTiles;
+  return !tiles.some(tt => tt.x === position.x && tt.y === position.y);
 }
 
 // Import the required functions from movement-utils to fill the import dependencies

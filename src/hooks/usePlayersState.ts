@@ -78,8 +78,8 @@ export function usePlayersState(
       let didSpin = false;
 
       // Check if the new position would result in a crash
-      // FIX: Only pass the newPosition argument to checkCrash
-      isCrashed = checkCrash(newPosition);
+      // Now pass trackTiles so checkCrash runs on correct track
+      isCrashed = checkCrash(newPosition, track.trackTiles);
 
       // Calculate next turn's possible moves if standing at newPosition with potential state
       let possibleMovesNextTurn: Position[] = [];
