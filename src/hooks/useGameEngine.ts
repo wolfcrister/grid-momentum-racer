@@ -27,8 +27,9 @@ export function useGameEngine() {
     programmedMoves, setProgrammedMoves,
   } = useGameModeState();
 
-  // State for winner
+  // State for winner and current round
   const [winner, setWinner] = useState<Player | null>(null);
+  const [currentRound, setCurrentRound] = useState(1);
   
   // Add state for valid moves
   const [validMoves, setValidMoves] = useState<Position[]>([]);
@@ -37,7 +38,6 @@ export function useGameEngine() {
   const {
     players, setPlayers,
     currentPlayer, setCurrentPlayer,
-    currentRound, setCurrentRound,
     initializePlayers,
     executeMove,
   } = usePlayersState(
@@ -45,7 +45,7 @@ export function useGameEngine() {
     track,
     setMoveLog,
     setWinner,
-    currentRound // Pass the currentRound state instead of hardcoded 1
+    currentRound // Now currentRound is defined before it's passed
   );
 
   // Initialize game when settings change and game is not started
