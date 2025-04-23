@@ -27,7 +27,6 @@ export function usePlayersState(
   setWinner: React.Dispatch<React.SetStateAction<Player | null>>,
   currentRound: number,
 ) {
-  // Set up initial players state
   const initializePlayers = () => {
     const initialPlayers: Player[] = [];
     for (let i = 0; i < playerCount; i++) {
@@ -52,8 +51,6 @@ export function usePlayersState(
   const [currentRoundState, setCurrentRound] = useState(currentRound);
   const [winner, _setWinner] = useState<Player | null>(null);
 
-  // Let parent manage winner for now
-  // Expose functions for moving players
   const executeMove = (
     playerIndex: number,
     newPosition: Position,
@@ -71,16 +68,11 @@ export function usePlayersState(
       const dx = newPosition.x - lastPosition.x;
       const dy = newPosition.y - lastPosition.y;
 
-      // Momentum vector
-      // ---- Modified SPIN / CRASH LOGIC ----
       let isCrashed = false;
       let didSpin = false;
 
-      // Check if the new position would result in a crash
-      // Pass both position and trackTiles to the checkCrash function
       isCrashed = checkCrash(newPosition, trackTiles);
 
-      // Calculate next turn's possible moves if standing at newPosition with potential state
       let possibleMovesNextTurn: Position[] = [];
       if (!player.crashed && !isCrashed) {
         const simPlayer = { ...player, position: newPosition, direction: newDirection, speed: newSpeed };
@@ -88,7 +80,6 @@ export function usePlayersState(
         possibleMovesNextTurn = getValidMoves(simPlayer, track.size, updatedPlayers);
       }
 
-      // If possibleMovesNextTurn has at least one move ON TRACK, all okay.
       if (possibleMovesNextTurn.length === 0) {
         const adjacents = getAllAdjacentPositions(newPosition, track.size);
         const offTrackAdjacents = adjacents.filter(p =>
@@ -131,7 +122,6 @@ export function usePlayersState(
       player.direction = didSpin ? player.direction : newDirection;
       player.speed = isCrashed ? 0 : (didSpin ? 0 : newSpeed + speedBonus);
 
-      // Record move in log
       const momentumVector: [number, number] = [dx, dy];
       const speedChange = player.speed - oldSpeed;
       setMoveLog(prev => [
@@ -150,7 +140,6 @@ export function usePlayersState(
       (player as any).lastPosition = lastPosition;
 
       if (!isCrashed) {
-        // Typefix: checkpoint lines
         const checkpointLines = track.checkpoints;
         const cpIndex = checkCheckpointCrossed(lastPosition, newPosition, checkpointLines);
         if (
