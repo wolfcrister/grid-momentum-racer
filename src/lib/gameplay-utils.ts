@@ -1,7 +1,5 @@
-
 import { Player, Position, Direction } from "@/types/game";
-import { getAllAdjacentPositions, isValidPosition, doesSegmentPassThroughTile } from "./position-utils";
-import { getLastDelta, getValidMovesByMomentum, getValidMovesWithCollisions, isPositionOccupiedByPlayer } from "./movement-utils";
+import { isValidPosition, doesSegmentPassThroughTile } from "./position-utils";
 import { tracks } from "./tracks";
 
 // Get valid moves based on true momentum rules (vector-based)
@@ -129,10 +127,9 @@ export function checkFinishLineCrossed(
 }
 
 // Check if a position would result in a crash (not on track)
-export function checkCrash(position: Position, trackTiles?: Position[]): boolean {
-  const tiles = trackTiles ?? tracks.oval.trackTiles;
-  return !tiles.some(tt => tt.x === position.x && tt.y === position.y);
+export function checkCrash(position: Position): boolean {
+  return !tracks.oval.trackTiles.some(tt => tt.x === position.x && tt.y === position.y);
 }
 
 // Import the required functions from movement-utils to fill the import dependencies
-import { getNewDirection } from "./movement-utils";
+import { getNewDirection, getValidMovesByMomentum, getValidMovesWithCollisions } from "./movement-utils";
