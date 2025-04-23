@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import {
   Player,
@@ -120,12 +121,16 @@ export function useGameEngine() {
       let isCrashed = false;
       let didSpin = false;
 
+      // Check if the new position would result in a crash
+      // Fix: Update this call to match what checkCrash expects
+      isCrashed = checkCrash(newPosition);
+
       // Calculate next turn's possible moves if standing at newPosition with potential state
       let possibleMovesNextTurn: Position[] = [];
-      if (!player.crashed) {
+      if (!player.crashed && !isCrashed) {
         const simPlayer = { ...player, position: newPosition, direction: newDirection, speed: newSpeed };
         (simPlayer as any).lastPosition = lastPosition;
-        possibleMovesNextTurn = getValidMoves(simPlayer, track.size, players);
+        possibleMovesNextTurn = getValidMoves(simPlayer, track.size, updatedPlayers);
       }
 
       // If possibleMovesNextTurn has at least one move ON TRACK, all okay.

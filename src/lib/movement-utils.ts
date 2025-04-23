@@ -137,13 +137,19 @@ export function getValidMovesByMomentum(player: Player, boardSize: number): Posi
     };
     const [dx, dy] = directionVectors[player.direction];
     const forwardPos = { x: currentPos.x + dx, y: currentPos.y + dy };
+    
+    // Check if forward move is valid
     if (
-      isValidPosition(forwardPos, boardSize) &&
+      isValidPosition(forwardPos, boardSize) && 
       trackLayout.trackTiles.some(tt => tt.x === forwardPos.x && tt.y === forwardPos.y)
     ) {
       return [forwardPos];
+    } else {
+      // If forward isn't valid, try all adjacent positions
+      return getAllAdjacentPositions(currentPos, boardSize).filter(pos =>
+        trackLayout.trackTiles.some(tt => tt.x === pos.x && tt.y === pos.y)
+      );
     }
-    return []; // No forward move possible
   }
 
   // ---- Case 2: Use the last movement vector as momentum ----
@@ -158,6 +164,8 @@ export function getValidMovesByMomentum(player: Player, boardSize: number): Posi
     };
     const [dx, dy] = directionVectors[player.direction];
     const forwardPos = { x: currentPos.x + dx, y: currentPos.y + dy };
+    
+    // Check if forward move is valid
     if (
       isValidPosition(forwardPos, boardSize) &&
       trackLayout.trackTiles.some(tt => tt.x === forwardPos.x && tt.y === forwardPos.y)
