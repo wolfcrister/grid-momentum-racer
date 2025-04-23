@@ -30,26 +30,10 @@ function pickRandomMainDirection(): Direction {
   return MAIN_DIRECTIONS[Math.floor(Math.random() * MAIN_DIRECTIONS.length)];
 }
 
-export function useGameEngine() {
-  // Game state
-  const [trackType, setTrackType] = useState<keyof typeof tracks>("oval");
-  const [gameStarted, setGameStarted] = useState(false);
-  const [playerCount, setPlayerCount] = useState(2);
-  const [track, setTrack] = useState<Track>(tracks[trackType]);
-  const [players, setPlayers] = useState<Player[]>([]);
-  const [currentPlayer, setCurrentPlayer] = useState(0);
-  const [currentRound, setCurrentRound] = useState(1);
-  const [winner, setWinner] = useState<Player | null>(null);
-  const [validMoves, setValidMoves] = useState<Position[]>([]);
-  const [gameMode, setGameMode] = useState<GameMode>("turn-based");
-  const [programmedMoves, setProgrammedMoves] = useState<Record<number, Position>>({});
-  const [moveLog, setMoveLog] = useState<MoveLogEntry[]>([]);
-
-  // Initialize game
-  useEffect(() => {
-    if (gameStarted) return;
+// REFACTORED: Split game initialization logic into a separate hook
+export function useGameInitialization(playerCount: number, trackType: keyof typeof tracks) {
+  const initializePlayers = () => {
     const newTrack = tracks[trackType];
-    setTrack(newTrack);
     const initialPlayers: Player[] = [];
     for (let i = 0; i < playerCount; i++) {
       const startPos = newTrack.startPositions[i];
@@ -65,44 +49,21 @@ export function useGameEngine() {
         crashed: false
       });
     }
-    setPlayers(initialPlayers);
-    setCurrentPlayer(0);
-    setWinner(null);
-    setCurrentRound(1);
-  }, [playerCount, trackType, gameStarted]);
-
-  // Calculate valid moves when current player changes
-  useEffect(() => {
-    if (!gameStarted) return;
-    const player = players[currentPlayer];
-    const moves = getValidMoves(player, track.size, players);
-    setValidMoves(moves);
-  }, [currentPlayer, players, track.size, gameStarted]);
-
-  // Handle player movement
-  const handleMove = (position: Position) => {
-    if (gameMode === "programming") {
-      setProgrammedMoves({
-        ...programmedMoves,
-        [currentPlayer]: position
-      });
-      const nextPlayer = (currentPlayer + 1) % playerCount;
-      if (nextPlayer === 0) {
-        executeAllMoves();
-      } else {
-        setCurrentPlayer(nextPlayer);
-      }
-    } else {
-      executeMove(currentPlayer, position);
-      const nextPlayer = (currentPlayer + 1) % playerCount;
-      if (nextPlayer === 0) {
-        setCurrentRound(currentRound + 1);
-      }
-      setCurrentPlayer(nextPlayer);
-    }
+    return initialPlayers;
   };
 
-  // Execute move for a single player
+  return { initializePlayers, tracks };
+}
+
+// REFACTORED: Split move execution logic into a separate hook
+export function useMoveExecution(
+  players: Player[],
+  setPlayers: React.Dispatch<React.SetStateAction<Player[]>>,
+  currentRound: number,
+  track: Track,
+  setMoveLog: React.Dispatch<React.SetStateAction<MoveLogEntry[]>>,
+  setWinner: React.Dispatch<React.SetStateAction<Player | null>>
+) {
   const executeMove = (playerIndex: number, newPosition: Position) => {
     setPlayers(prevPlayers => {
       const updatedPlayers = [...prevPlayers];
@@ -244,6 +205,70 @@ export function useGameEngine() {
       updatedPlayers[playerIndex] = player;
       return updatedPlayers;
     });
+  };
+
+  return executeMove;
+}
+
+// Main game engine hook
+export function useGameEngine() {
+  // Game state
+  const [trackType, setTrackType] = useState<keyof typeof tracks>("oval");
+  const [gameStarted, setGameStarted] = useState(false);
+  const [playerCount, setPlayerCount] = useState(2);
+  const [track, setTrack] = useState<Track>(tracks[trackType]);
+  const [players, setPlayers] = useState<Player[]>([]);
+  const [currentPlayer, setCurrentPlayer] = useState(0);
+  const [currentRound, setCurrentRound] = useState(1);
+  const [winner, setWinner] = useState<Player | null>(null);
+  const [validMoves, setValidMoves] = useState<Position[]>([]);
+  const [gameMode, setGameMode] = useState<GameMode>("turn-based");
+  const [programmedMoves, setProgrammedMoves] = useState<Record<number, Position>>({});
+  const [moveLog, setMoveLog] = useState<MoveLogEntry[]>([]);
+
+  const { initializePlayers } = useGameInitialization(playerCount, trackType);
+  const executeMove = useMoveExecution(players, setPlayers, currentRound, track, setMoveLog, setWinner);
+
+  // Initialize game
+  useEffect(() => {
+    if (gameStarted) return;
+    const newTrack = tracks[trackType];
+    setTrack(newTrack);
+    setPlayers(initializePlayers());
+    setCurrentPlayer(0);
+    setWinner(null);
+    setCurrentRound(1);
+  }, [playerCount, trackType, gameStarted, initializePlayers]);
+
+  // Calculate valid moves when current player changes
+  useEffect(() => {
+    if (!gameStarted) return;
+    const player = players[currentPlayer];
+    const moves = getValidMoves(player, track.size, players);
+    setValidMoves(moves);
+  }, [currentPlayer, players, track.size, gameStarted]);
+
+  // Handle player movement
+  const handleMove = (position: Position) => {
+    if (gameMode === "programming") {
+      setProgrammedMoves({
+        ...programmedMoves,
+        [currentPlayer]: position
+      });
+      const nextPlayer = (currentPlayer + 1) % playerCount;
+      if (nextPlayer === 0) {
+        executeAllMoves();
+      } else {
+        setCurrentPlayer(nextPlayer);
+      }
+    } else {
+      executeMove(currentPlayer, position);
+      const nextPlayer = (currentPlayer + 1) % playerCount;
+      if (nextPlayer === 0) {
+        setCurrentRound(currentRound + 1);
+      }
+      setCurrentPlayer(nextPlayer);
+    }
   };
 
   // Execute all programmed moves
