@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Player, Position, Track, Direction } from "@/types/game";
 import { tracks } from "@/lib/tracks";
@@ -78,6 +77,7 @@ export function usePlayersState(
       let didSpin = false;
 
       // Check if the new position would result in a crash
+      // Pass both position and trackTiles to the checkCrash function
       isCrashed = checkCrash(newPosition, trackTiles);
 
       // Calculate next turn's possible moves if standing at newPosition with potential state

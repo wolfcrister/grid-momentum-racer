@@ -1,3 +1,4 @@
+
 import { Player, Position, Direction } from "@/types/game";
 import { isValidPosition, doesSegmentPassThroughTile } from "./position-utils";
 import { tracks } from "./tracks";
@@ -127,6 +128,7 @@ export function checkFinishLineCrossed(
 }
 
 // Check if a position would result in a crash (not on track)
+// The function should accept trackTiles as an optional second parameter
 export function checkCrash(position: Position, trackTiles: Position[] = tracks.oval.trackTiles): boolean {
   return !trackTiles.some(tt => tt.x === position.x && tt.y === position.y);
 }
