@@ -1,9 +1,8 @@
 
-// Import and re-export functions from movement-utils.ts
+// Import and re-export from the new movement utils structure
 import { 
   getNextPosition,
   getLastDelta,
-  calculateMomentumPosition,
   getNewDirection,
   calculateNewSpeed,
   isPositionOccupiedByPlayer,
@@ -33,7 +32,6 @@ export {
   // From movement-utils.ts
   getNextPosition,
   getLastDelta,
-  calculateMomentumPosition,
   getNewDirection,
   calculateNewSpeed,
   isPositionOccupiedByPlayer,
@@ -53,3 +51,4 @@ export {
   checkCheckpointCrossed,
   checkFinishLineCrossed,
 };
+
