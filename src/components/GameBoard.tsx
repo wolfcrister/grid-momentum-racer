@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { GridTile } from "./GridTile";
 import { Car } from "./Car";
@@ -25,6 +25,11 @@ export function GameBoard({
   checkpoints,
   finishLine
 }: GameBoardProps) {
+  // Log valid moves for debugging
+  useEffect(() => {
+    console.log("GameBoard received validMoves:", validMoves);
+  }, [validMoves]);
+
   // Calculate the momentum position for the current player
   const getMomentumPosition = () => {
     const player = players[currentPlayer];
@@ -80,7 +85,12 @@ export function GameBoard({
         isValidMove={isValidMove}
         isMomentumPosition={isMomentumPosition}
         isTrackTile={isTrackTile}
-        onClick={() => isValidMove && onMove(position)}
+        onClick={() => {
+          console.log("Tile clicked:", position, "isValidMove:", isValidMove);
+          if (isValidMove) {
+            onMove(position);
+          }
+        }}
       />
     );
   };
@@ -95,7 +105,8 @@ export function GameBoard({
         style={{
           gridTemplateColumns: `repeat(${size}, 1fr)`,
           aspectRatio: "1/1",
-          position: "relative"
+          position: "relative",
+          '--grid-size': size, // Set the CSS variable for sizing
         }}
       >
         {Array.from({ length: size * size }).map((_, index) => {
@@ -113,6 +124,12 @@ export function GameBoard({
             direction={player.direction}
           />
         ))}
+      </div>
+      
+      {/* Debug info */}
+      <div className="mt-2 p-2 bg-muted/50 text-xs rounded">
+        <div>Valid moves: {validMoves.length} ({validMoves.map(m => `[${m.x},${m.y}]`).join(", ")})</div>
+        <div>Current player: {currentPlayer + 1} at position [{players[currentPlayer]?.position.x}, {players[currentPlayer]?.position.y}]</div>
       </div>
     </div>
   );

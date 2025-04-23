@@ -1,7 +1,5 @@
-
 import { useState } from "react";
 import { Player, Position, Track, Direction } from "@/types/game";
-import { tracks } from "@/lib/tracks";
 import { toast } from "@/hooks/use-toast";
 import { MoveLogEntry } from "@/components/MoveLog";
 import {
@@ -40,6 +38,7 @@ export function usePlayersState(
         checkpointsPassed: new Set(),
         totalCheckpoints: track.checkpoints.length,
         isFinished: false,
+        trackTiles: track.trackTiles,
       });
     }
     return initialPlayers;
@@ -70,7 +69,7 @@ export function usePlayersState(
       let didSpin = false;
 
       let possibleMovesNextTurn: Position[] = [];
-      const simPlayer = { ...player, position: newPosition, direction: newDirection, speed: newSpeed };
+      const simPlayer = { ...player, position: newPosition, direction: newDirection, speed: newSpeed, trackTiles };
       (simPlayer as any).lastPosition = lastPosition;
       possibleMovesNextTurn = getValidMovesWithCollisions(simPlayer, updatedPlayers, track.size);
 

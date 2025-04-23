@@ -70,12 +70,23 @@ export function useGameEngine() {
     const player = players[currentPlayer];
     if (!player) return;
     
-    const moves = getValidMovesWithCollisions(player, players, track.size);
+    // We need to ensure the player has trackTiles set
+    const playerWithTrack = {
+      ...player,
+      trackTiles: track.trackTiles
+    };
+    
+    const moves = getValidMovesWithCollisions(playerWithTrack, players, track.size);
     setValidMoves(moves);
-  }, [currentPlayer, players, track.size, gameStarted]);
+    
+    // Add debugging log
+    console.log('Valid moves calculated:', moves.length, 'moves available');
+  }, [currentPlayer, players, track.size, track.trackTiles, gameStarted]);
 
   // Handle player movement
   const handleMove = (position: Position) => {
+    console.log('Attempting to move to position:', position);
+    
     if (gameMode === "programming") {
       setProgrammedMoves({
         ...programmedMoves,

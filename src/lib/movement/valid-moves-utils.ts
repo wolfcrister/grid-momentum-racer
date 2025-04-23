@@ -1,12 +1,10 @@
 
 import { Player, Position, Direction } from "@/types/game";
-import { tracks } from "@/lib/tracks";
 import { getAllAdjacentPositions } from "./position-utils";
 import { getLastDelta } from "./speed-direction-utils";
 
 // Calculate valid moves by momentum without checking collisions
-export function getValidMovesByMomentum(player: Player, boardSize: number): Position[] {
-  const trackLayout = tracks.oval;
+export function getValidMovesByMomentum(player: Player, boardSize: number, trackTiles: Position[]): Position[] {
   const currentPos = player.position;
 
   // Case 1: Speed is zero -> can move only "forward" in direction
@@ -18,11 +16,11 @@ export function getValidMovesByMomentum(player: Player, boardSize: number): Posi
     const [dx, dy] = directionVectors[player.direction];
     const forwardPos = { x: currentPos.x + dx, y: currentPos.y + dy };
     
-    if (isValidTrackPosition(forwardPos, boardSize)) {
+    if (isValidTrackPosition(forwardPos, boardSize, trackTiles)) {
       return [forwardPos];
     } else {
       return getAllAdjacentPositions(currentPos, boardSize).filter(pos =>
-        isValidTrackPosition(pos, boardSize)
+        isValidTrackPosition(pos, boardSize, trackTiles)
       );
     }
   }
@@ -38,12 +36,12 @@ export function getValidMovesByMomentum(player: Player, boardSize: number): Posi
     const [dx, dy] = directionVectors[player.direction];
     const forwardPos = { x: currentPos.x + dx, y: currentPos.y + dy };
     
-    if (isValidTrackPosition(forwardPos, boardSize)) {
+    if (isValidTrackPosition(forwardPos, boardSize, trackTiles)) {
       return [forwardPos];
     }
     
     return getAllAdjacentPositions(currentPos, boardSize).filter(pos =>
-      isValidTrackPosition(pos, boardSize)
+      isValidTrackPosition(pos, boardSize, trackTiles)
     );
   }
 
@@ -54,7 +52,7 @@ export function getValidMovesByMomentum(player: Player, boardSize: number): Posi
       const newDy = dy + sdy;
       if (newDx === 0 && newDy === 0) continue;
       const nextPos = { x: currentPos.x + newDx, y: currentPos.y + newDy };
-      if (isValidTrackPosition(nextPos, boardSize)) {
+      if (isValidTrackPosition(nextPos, boardSize, trackTiles)) {
         validMoves.push(nextPos);
       }
     }
@@ -73,7 +71,10 @@ export function isPositionOccupiedByPlayer(position: Position, players: Player[]
 // Calculate valid moves accounting for player collisions
 export function getValidMovesWithCollisions(player: Player, players: Player[], boardSize: number): Position[] {
   const otherPlayers = players.filter(p => p.id !== player.id);
-  const validMoves = getValidMovesByMomentum(player, boardSize);
+  // Get the track tiles from the current track
+  const trackTiles = player.trackTiles || [];
+  
+  const validMoves = getValidMovesByMomentum(player, boardSize, trackTiles);
   
   return validMoves.filter(move => 
     !isPositionOccupiedByPlayer(move, otherPlayers)
@@ -81,10 +82,12 @@ export function getValidMovesWithCollisions(player: Player, players: Player[], b
 }
 
 // Helper function to check if a position is valid (within bounds and on track)
-function isValidTrackPosition(position: Position, boardSize: number): boolean {
+function isValidTrackPosition(position: Position, boardSize: number, trackTiles: Position[]): boolean {
   if (position.x < 0 || position.x >= boardSize || 
       position.y < 0 || position.y >= boardSize) {
     return false;
   }
-  return tracks.oval.trackTiles.some(tt => tt.x === position.x && tt.y === position.y);
+  
+  // Check if position is on a track tile
+  return trackTiles.some(tt => tt.x === position.x && tt.y === position.y);
 }
