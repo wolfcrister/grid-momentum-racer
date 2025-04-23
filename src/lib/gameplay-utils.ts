@@ -128,7 +128,8 @@ export function checkFinishLineCrossed(
 }
 
 // Check if a position would result in a crash (not on track)
-// Fixed signature to match how it's being called in usePlayersState.ts
+// This function explicitly takes two parameters to match how it's being called 
+// in usePlayersState.ts
 export function checkCrash(position: Position, trackTiles: Position[]): boolean {
   return !trackTiles.some(tt => tt.x === position.x && tt.y === position.y);
 }
