@@ -19,6 +19,7 @@ export type Player = {
   totalCheckpoints: number;
   isFinished: boolean;
   crashed: boolean;
+  moveHistory?: Position[]; // Added to track position history
 };
 
 export type GameMode = "turn-based" | "programming";

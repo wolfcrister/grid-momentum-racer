@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Player, Position, Track, GameMode, Direction, PlayerColor } from "@/types/game";
 import { GameSetup } from "@/components/game/GameSetup";
@@ -17,12 +18,17 @@ import {
 
 const playerColors = ["red", "blue", "yellow", "green"] as const;
 
+// Update Player type to include moveHistory
+type PlayerWithHistory = Player & {
+  moveHistory?: Position[];
+};
+
 const Index = () => {
   // Game state
   const [gameStarted, setGameStarted] = useState(false);
   const [trackType, setTrackType] = useState<keyof typeof tracks>("oval");
   const [track, setTrack] = useState<Track>(tracks[trackType]);
-  const [players, setPlayers] = useState<Player[]>([]);
+  const [players, setPlayers] = useState<PlayerWithHistory[]>([]);
   const [currentPlayer, setCurrentPlayer] = useState(0);
   const [currentRound, setCurrentRound] = useState(1);
   const [winner, setWinner] = useState<Player | null>(null);
@@ -115,8 +121,14 @@ const Index = () => {
 
       // Calculate new direction and speed
       const newDirection = getNewDirection(player.position, newPosition);
-      const oldSpeed = player.speed;
-      const newSpeed = calculateNewSpeed(player, newPosition);
+      
+      // Calculate new speed based on the distance moved
+      const newSpeed = calculateNewSpeed(player.position, newPosition);
+
+      // Track move history
+      const moveHistory = player.moveHistory || [];
+      moveHistory.push({ ...player.position });
+      player.moveHistory = moveHistory.slice(-5); // Keep last 5 moves
 
       // Check for crash or spin out
       const { crashed, didSpin } = checkCrash(
