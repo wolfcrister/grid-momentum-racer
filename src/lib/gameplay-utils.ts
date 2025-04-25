@@ -152,7 +152,7 @@ export function checkCrash(
   player: Player,
   trackTiles: Position[],
   players: Player[],
-  boardSize: number
+  boardSize: { width: number, height: number }
 ): { crashed: boolean; didSpin: boolean } {
   // Get valid moves
   const validMoves = getValidMoves(player, boardSize, players);
@@ -172,3 +172,4 @@ export function checkCrash(
 
 // Import the required functions from movement-utils to fill the import dependencies
 import { getNewDirection } from "./movement-utils";
+
