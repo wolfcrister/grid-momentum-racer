@@ -17,22 +17,23 @@ function horizontalLine(y: number, xStart: number, xEnd: number): Position[] {
   return line;
 }
 
-// Generate the track tiles for a board with a 4-tile wide oval track
+// Generate the track tiles for a board with a 5-tile wide oval track
 function generateOvalTrackTiles() {
   const trackTiles: Position[] = [];
-  const size = GAME_CONFIG.grid.size;
-  const trackWidth = 4;
+  const width = GAME_CONFIG.grid.size.width;
+  const height = GAME_CONFIG.grid.size.height;
+  const trackWidth = 5;
   const padding = 1;
 
   // Top/bottom straights
-  for (let x = padding; x < size - padding; x++) {
+  for (let x = padding; x < width - padding; x++) {
     for (let y = padding; y < padding + trackWidth; y++) trackTiles.push({ x, y });
-    for (let y = size - padding - trackWidth; y < size - padding; y++) trackTiles.push({ x, y });
+    for (let y = height - padding - trackWidth; y < height - padding; y++) trackTiles.push({ x, y });
   }
   // Left/right straights
-  for (let y = padding; y < size - padding; y++) {
+  for (let y = padding; y < height - padding; y++) {
     for (let x = padding; x < padding + trackWidth; x++) trackTiles.push({ x, y });
-    for (let x = size - padding - trackWidth; x < size - padding; x++) trackTiles.push({ x, y });
+    for (let x = width - padding - trackWidth; x < width - padding; x++) trackTiles.push({ x, y });
   }
   return trackTiles;
 }
@@ -40,28 +41,27 @@ function generateOvalTrackTiles() {
 const ovalTrackTiles = generateOvalTrackTiles();
 
 // --- Track setup constants ---
-const size = GAME_CONFIG.grid.size;
-const trackWidth = 4;
+const width = GAME_CONFIG.grid.size.width;
+const height = GAME_CONFIG.grid.size.height;
+const trackWidth = 5;
 const padding = 1;
 
-// For the vertical track, "inside" edge is at padding and "outside" edge is size - padding - 1
+// For the vertical track sections
 const minY = padding;
-const maxY = size - padding - 1;
+const maxY = height - padding - 1;
 const minX = padding;
-const maxX = size - padding - 1;
+const maxX = width - padding - 1;
 
-// Finish line: vertical line at x=10, y=1..4 (4 tiles wide, matching track width)
+// Finish line: vertical line at x=15, y=1..5 (5 tiles wide, matching track width)
 function getFinishLine(): Position[] {
-  const finishLineX = 10;
-  return verticalLine(finishLineX, padding, padding + trackWidth - 1); // y=1..4
+  const finishLineX = 15;
+  return verticalLine(finishLineX, padding, padding + trackWidth - 1);
 }
 
-// --- Checkpoint A: vertical line from (14,15) to (14,18) ---
-// --- Checkpoint B: horizontal line from (1,11) to (4,11) ---
-const checkpointA = verticalLine(14, 15, 18);
-const checkpointB = horizontalLine(11, 1, 4);
+// Checkpoints positioned for the larger track
+const checkpointA = verticalLine(30, 15, 19);
+const checkpointB = horizontalLine(11, 1, 5);
 
-// For unit checkpoint lines
 const ovalCheckpoints = [
   checkpointA,
   checkpointB,
@@ -72,13 +72,16 @@ const finishLineOval = getFinishLine();
 // Set starting positions ON the finish line tiles, facing east
 const ovalStartPositions = finishLineOval.map(pos => ({
   position: { ...pos },
-  direction: "E" as Direction, // Changed from "S" to "E"
+  direction: "E" as Direction,
 }));
 
 export const tracks = {
   oval: {
-    size: 20,
-    checkpoints: ovalCheckpoints, // Array of unit checkpoint lines
+    size: {
+      width: GAME_CONFIG.grid.size.width,
+      height: GAME_CONFIG.grid.size.height
+    },
+    checkpoints: ovalCheckpoints,
     finishLine: finishLineOval,
     startPositions: ovalStartPositions,
     trackTiles: ovalTrackTiles,

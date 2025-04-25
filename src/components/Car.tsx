@@ -80,10 +80,10 @@ export function Car({ player, position, direction, isActive }: CarProps) {
   };
 
   const carStyle: React.CSSProperties = {
-    width: `calc(100% / ${GAME_CONFIG.grid.size})`,
-    height: `calc(100% / ${GAME_CONFIG.grid.size})`,
-    top: `calc(${position.y} * 100% / ${GAME_CONFIG.grid.size})`,
-    left: `calc(${position.x} * 100% / ${GAME_CONFIG.grid.size})`,
+    width: `calc(100% / ${GAME_CONFIG.grid.size.width})`,
+    height: `calc(100% / ${GAME_CONFIG.grid.size.height})`,
+    top: `calc(${position.y} * 100% / ${GAME_CONFIG.grid.size.height})`,
+    left: `calc(${position.x} * 100% / ${GAME_CONFIG.grid.size.width})`,
     zIndex: isActive ? 20 : 10,
     ...getCrashedOffset()
   };

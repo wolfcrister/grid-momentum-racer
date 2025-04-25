@@ -1,3 +1,4 @@
+
 import React from "react";
 import { cn } from "@/lib/utils";
 import { GridTile } from "./GridTile";
@@ -8,12 +9,12 @@ import { getLastDelta } from "@/lib/game-utils";
 import { GAME_CONFIG } from "@/lib/game-config";
 
 interface GameBoardProps {
-  size: number;
+  size: { width: number; height: number };  // Updated to handle width and height
   players: Player[];
   currentPlayer: number;
   onMove: (position: Position) => void;
   validMoves: Position[];
-  checkpoints: Position[][];  // Updated type to match track definition
+  checkpoints: Position[][];
   finishLine: Position[];
 }
 
@@ -84,21 +85,21 @@ export function GameBoard({
   };
 
   return (
-    <div className="relative w-full max-w-3xl mx-auto">
+    <div className="relative w-full max-w-5xl mx-auto">
       <div
         className={cn(
           "grid gap-0.5 bg-muted p-0.5 rounded-lg overflow-hidden",
           "shadow-2xl border-2 border-accent/50"
         )}
         style={{
-          gridTemplateColumns: `repeat(${size}, 1fr)`,
-          aspectRatio: "1/1",
+          gridTemplateColumns: `repeat(${size.width}, 1fr)`,
+          aspectRatio: `${size.width}/${size.height}`,
           position: "relative"
         }}
       >
-        {Array.from({ length: size * size }).map((_, index) => {
-          const x = index % size;
-          const y = Math.floor(index / size);
+        {Array.from({ length: size.width * size.height }).map((_, index) => {
+          const x = index % size.width;
+          const y = Math.floor(index / size.width);
           return renderTile(x, y);
         })}
 

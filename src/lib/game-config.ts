@@ -3,7 +3,10 @@
 export const GAME_CONFIG = {
   // Grid configuration
   grid: {
-    size: 20, // Default grid size (rows/columns)
+    size: {
+      width: 40,     // Grid width (columns)
+      height: 20,    // Grid height (rows)
+    },
     cssVar: "--grid-size"
   },
   
