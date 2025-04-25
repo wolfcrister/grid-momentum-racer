@@ -12,7 +12,7 @@ interface GameBoardProps {
   currentPlayer: number;
   onMove: (position: Position) => void;
   validMoves: Position[];
-  checkpoints: Position[];
+  checkpoints: Position[][];  // Updated type to match track definition
   finishLine: Position[];
 }
 
@@ -57,9 +57,16 @@ export function GameBoard({
 
   const momentumPosition = getMomentumPosition();
 
+  // Helper function to determine if a tile is part of any checkpoint
+  const isTileInCheckpoints = (x: number, y: number): boolean => {
+    return checkpoints.some(checkpointLine => 
+      checkpointLine.some(pos => pos.x === x && pos.y === y)
+    );
+  };
+
   const renderTile = (x: number, y: number) => {
     const position: Position = { x, y };
-    const isCheckpoint = checkpoints.some(cp => cp.x === x && cp.y === y);
+    const isCheckpoint = isTileInCheckpoints(x, y);
     const isFinish = finishLine.some(fl => fl.x === x && fl.y === y);
     const isValidMove = validMoves.some(vm => vm.x === x && vm.y === y) && !players[currentPlayer].crashed;
     const isTrackTile = tracks.oval.trackTiles.some(tt => tt.x === x && tt.y === y);
@@ -114,3 +121,4 @@ export function GameBoard({
     </div>
   );
 }
+
