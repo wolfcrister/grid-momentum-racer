@@ -2,13 +2,13 @@
 import { Position } from "@/types/game";
 
 // Check if a position is within board boundaries
-export function isValidPosition(position: Position, boardSize: number): boolean {
-  return position.x >= 0 && position.x < boardSize && 
-         position.y >= 0 && position.y < boardSize;
+export function isValidPosition(position: Position, boardSize: { width: number, height: number }): boolean {
+  return position.x >= 0 && position.x < boardSize.width && 
+         position.y >= 0 && position.y < boardSize.height;
 }
 
 // Get all adjacent positions
-export function getAllAdjacentPositions(position: Position, boardSize: number): Position[] {
+export function getAllAdjacentPositions(position: Position, boardSize: { width: number, height: number }): Position[] {
   const { x, y } = position;
   const adjacent: Position[] = [];
   for (let dx = -1; dx <= 1; dx++) {

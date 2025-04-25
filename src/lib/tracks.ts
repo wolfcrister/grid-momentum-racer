@@ -1,3 +1,4 @@
+
 import { Position, Direction } from "@/types/game";
 import { GAME_CONFIG } from "./game-config";
 
@@ -88,7 +89,10 @@ export const tracks = {
   },
 
   figure8: {
-    size: 12,
+    size: {
+      width: 12,
+      height: 12
+    },
     checkpoints: [
       // Placeholders for unit-style checkpoint lines (could be refactored further if needed)
       [{ x: 3, y: 3 }],

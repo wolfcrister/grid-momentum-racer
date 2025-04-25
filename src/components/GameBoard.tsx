@@ -42,8 +42,8 @@ export function GameBoard({
     };
     
     // Check if the calculated momentum position is within board boundaries
-    if (momentumPos.x >= 0 && momentumPos.x < size && 
-        momentumPos.y >= 0 && momentumPos.y < size) {
+    if (momentumPos.x >= 0 && momentumPos.x < size.width && 
+        momentumPos.y >= 0 && momentumPos.y < size.height) {
       return momentumPos;
     }
     

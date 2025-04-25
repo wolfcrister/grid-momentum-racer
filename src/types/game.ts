@@ -25,7 +25,10 @@ export type Player = {
 export type GameMode = "turn-based" | "programming";
 
 export type Track = {
-  size: number;
+  size: {
+    width: number;
+    height: number;
+  };
   // Store checkpoints as an array of unit checkpoint lines (each one is an array of tiles)
   checkpoints: Position[][];
   finishLine: Position[];

@@ -106,7 +106,7 @@ export function isPositionOccupiedByPlayer(position: Position, players: Player[]
 }
 
 // Calculate valid moves accounting for player collisions
-export function getValidMovesWithCollisions(player: Player, players: Player[], boardSize: number): Position[] {
+export function getValidMovesWithCollisions(player: Player, players: Player[], boardSize: { width: number, height: number }): Position[] {
   const otherPlayers = players.filter(p => p.id !== player.id && !p.crashed);
   const validMoves = getValidMovesByMomentum(player, boardSize);
   
@@ -117,7 +117,7 @@ export function getValidMovesWithCollisions(player: Player, players: Player[], b
 }
 
 // Base valid moves by momentum without checking collisions
-export function getValidMovesByMomentum(player: Player, boardSize: number): Position[] {
+export function getValidMovesByMomentum(player: Player, boardSize: { width: number, height: number }): Position[] {
   if (player.crashed) return [];
   // Get the track layout from the imported tracks
   const trackLayout = tracks.oval; // always oval for now—could refactor for trackType
@@ -167,7 +167,7 @@ export function getValidMovesByMomentum(player: Player, boardSize: number): Posi
 }
 
 // Helper function for adjacent positions
-export function getAllAdjacentPositions(position: Position, boardSize: number): Position[] {
+export function getAllAdjacentPositions(position: Position, boardSize: { width: number, height: number }): Position[] {
   const { x, y } = position;
   const adjacent: Position[] = [];
   for (let dx = -1; dx <= 1; dx++) {

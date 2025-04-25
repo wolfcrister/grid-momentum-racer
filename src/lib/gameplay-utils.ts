@@ -1,10 +1,11 @@
+
 import { Player, Position, Direction } from "@/types/game";
 import { getAllAdjacentPositions, isValidPosition, doesSegmentPassThroughTile } from "./position-utils";
 import { getLastDelta, getValidMovesByMomentum, getValidMovesWithCollisions, isPositionOccupiedByPlayer, getNextPosition } from "./movement-utils";
 import { tracks } from "./tracks";
 
 // Get valid moves based on true momentum rules (vector-based)
-export function getValidMoves(player: Player, boardSize: number, allPlayers?: Player[]): Position[] {
+export function getValidMoves(player: Player, boardSize: { width: number, height: number }, allPlayers?: Player[]): Position[] {
   if (player.crashed) return [];
   
   // If speed is zero, only allow moving forward in current direction
