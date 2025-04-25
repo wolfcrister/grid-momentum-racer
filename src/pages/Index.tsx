@@ -12,6 +12,7 @@ import {
   checkCheckpointCrossed,
   checkFinishLineCrossed,
   getReverseDirection,
+  checkCrash
 } from "@/lib/game-utils";
 
 const playerColors = ["red", "blue", "yellow", "green"] as const;
@@ -117,27 +118,23 @@ const Index = () => {
       const oldSpeed = player.speed;
       const newSpeed = calculateNewSpeed(player, newPosition);
 
-      // Check if the position is on the track
-      const isOnTrack = track.trackTiles.some(tt => 
-        tt.x === newPosition.x && tt.y === newPosition.y
+      // Check for crash or spin out
+      const { crashed, didSpin } = checkCrash(
+        player,
+        newPosition,
+        track.trackTiles,
+        prevPlayers,
+        track.size
       );
 
-      // Check for collisions with other players
-      const isOccupied = prevPlayers.some(p => 
-        p.id !== player.id && !p.crashed && 
-        p.position.x === newPosition.x && p.position.y === newPosition.y
-      );
-
-      // Determine if the player crashed or spun out
-      if (!isOnTrack || isOccupied) {
+      if (crashed) {
         player.crashed = true;
         player.speed = 0;
         toast("Player " + player.id + " crashed!", {
           description: "Out of the race",
           duration: 3000
         });
-      } else if (Math.abs(newSpeed - oldSpeed) > 1) {
-        // If the speed change is too rapid, cause a spin out
+      } else if (didSpin) {
         player.speed = 0;
         player.direction = getReverseDirection(newDirection);
         player.crashed = false;
