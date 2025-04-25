@@ -18,13 +18,11 @@ import {
 
 const playerColors = ["red", "blue", "yellow", "green"] as const;
 
-// Update Player type to include moveHistory
 type PlayerWithHistory = Player & {
   moveHistory?: Position[];
 };
 
 const Index = () => {
-  // Game state
   const [gameStarted, setGameStarted] = useState(false);
   const [trackType, setTrackType] = useState<keyof typeof tracks>("oval");
   const [track, setTrack] = useState<Track>(tracks[trackType]);
@@ -37,7 +35,6 @@ const Index = () => {
   const [programmedMoves, setProgrammedMoves] = useState<Record<number, Position>>({});
   const [playerCount, setPlayerCount] = useState(2);
 
-  // Initialize game
   const initializeGame = ({ trackType, playerCount, gameMode }: {
     trackType: keyof typeof tracks;
     playerCount: number;
@@ -49,7 +46,6 @@ const Index = () => {
     setPlayerCount(playerCount);
     setGameMode(gameMode);
 
-    // Initialize players at starting positions
     const initialPlayers: Player[] = [];
     for (let i = 0; i < playerCount; i++) {
       const startPos = newTrack.startPositions[i];
@@ -73,12 +69,10 @@ const Index = () => {
     setGameStarted(true);
   };
 
-  // Calculate valid moves when current player changes
   useEffect(() => {
     if (!gameStarted) return;
     
     const player = players[currentPlayer];
-    // Check for crash or spin at the beginning of turn
     if (!player.crashed) {
       const { crashed, didSpin } = checkCrash(
         player, 
@@ -118,28 +112,31 @@ const Index = () => {
     setValidMoves(moves);
   }, [currentPlayer, players, track.size, track.trackTiles, gameStarted]);
 
-  // Handle player movement
+  useEffect(() => {
+    if (gameStarted && players[currentPlayer].crashed) {
+      const timer = setTimeout(() => {
+        handleSkipTurn();
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [currentPlayer, players, gameStarted]);
+
   const handleMove = (position: Position) => {
     if (gameMode === "programming") {
-      // Store the programmed move
       setProgrammedMoves({
         ...programmedMoves,
         [currentPlayer]: position
       });
       
-      // Move to next player
       const nextPlayer = (currentPlayer + 1) % playerCount;
       if (nextPlayer === 0) {
-        // All players have programmed their moves, execute them
         executeAllMoves();
       } else {
         setCurrentPlayer(nextPlayer);
       }
     } else {
-      // Turn-based mode: execute move immediately
       executeMove(currentPlayer, position);
       
-      // Move to next player
       const nextPlayer = (currentPlayer + 1) % playerCount;
       if (nextPlayer === 0) {
         setCurrentRound(currentRound + 1);
@@ -148,30 +145,23 @@ const Index = () => {
     }
   };
 
-  // Execute move for a single player
   const executeMove = (playerIndex: number, newPosition: Position) => {
     setPlayers(prevPlayers => {
       const updatedPlayers = [...prevPlayers];
       const player = { ...updatedPlayers[playerIndex] };
       const lastPosition = { ...player.position };
 
-      // Calculate new direction and speed
       const newDirection = getNewDirection(player.position, newPosition);
-      
-      // Calculate new speed based on the distance moved
       const newSpeed = calculateNewSpeed(player.position, newPosition);
 
-      // Track move history
       const moveHistory = player.moveHistory || [];
       moveHistory.push({ ...player.position });
-      player.moveHistory = moveHistory.slice(-5); // Keep last 5 moves
+      player.moveHistory = moveHistory.slice(-5);
 
-      // Update player position, direction, and speed
       player.position = newPosition;
       player.direction = newDirection;
       player.speed = newSpeed;
 
-      // Check for slipstream
       const otherPlayers = prevPlayers.filter((_, i) => i !== playerIndex);
       const hasSlipstream = checkSlipstream(player, otherPlayers, newPosition);
       if (hasSlipstream) {
@@ -182,7 +172,6 @@ const Index = () => {
         });
       }
 
-      // Check checkpoints and finish line
       const cpIndex = checkCheckpointCrossed(lastPosition, newPosition, track.checkpoints);
       if (cpIndex !== null && !player.checkpointsPassed.has(cpIndex)) {
         const newPassed = new Set(player.checkpointsPassed);
@@ -213,7 +202,6 @@ const Index = () => {
     });
   };
 
-  // Execute all programmed moves
   const executeAllMoves = () => {
     for (let i = 0; i < playerCount; i++) {
       if (programmedMoves[i]) {
@@ -224,7 +212,6 @@ const Index = () => {
     setCurrentRound(currentRound + 1);
   };
 
-  // Skip turn
   const handleSkipTurn = () => {
     if (gameMode === "programming") {
       setProgrammedMoves({
@@ -244,7 +231,6 @@ const Index = () => {
     setCurrentPlayer(nextPlayer);
   };
 
-  // Reset game
   const handleReset = () => {
     setGameStarted(false);
     setProgrammedMoves({});

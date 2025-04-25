@@ -35,6 +35,17 @@ export function Car({ player, position, direction, isActive }: CarProps) {
     }
   }, [position, prevPosition, player.speed, player.crashed]);
 
+  // Calculate offset for crashed cars (move them to the side)
+  const getCrashedOffset = () => {
+    if (!player.crashed) return {};
+    // Move cars slightly off to the side based on their ID to prevent stacking
+    const offsetX = ((player.id - 1) % 2) * 0.3; // Alternate left/right
+    const offsetY = Math.floor((player.id - 1) / 2) * 0.3; // Stack vertically if more than 2
+    return {
+      transform: `translate(${offsetX * 100}%, ${offsetY * 100}%)`
+    };
+  };
+
   const getRotation = () => {
     switch (direction) {
       case "N": return "rotate-0";
@@ -82,7 +93,8 @@ export function Car({ player, position, direction, isActive }: CarProps) {
         top: `calc(${position.y} * 100% / var(--grid-size))`,
         left: `calc(${position.x} * 100% / var(--grid-size))`,
         zIndex: isActive ? 20 : 10,
-        '--grid-size': 20, // Default size, will be overridden by CSS variables
+        '--grid-size': 20,
+        ...getCrashedOffset()
       } as React.CSSProperties}
     >
       <div
@@ -92,9 +104,9 @@ export function Car({ player, position, direction, isActive }: CarProps) {
           carColorClasses[player.color as keyof typeof carColorClasses],
           "rounded-md",
           animating && "scale-110",
-          spinning && "animate-spin",
+          spinning && "animate-[spin_1s_ease-in-out]",
           isActive && "ring-2 ring-white",
-          player.crashed && "opacity-60 grayscale"
+          player.crashed && "opacity-60 grayscale translate-x-2"
         )}
       >
         <div className="relative w-full h-full flex items-center justify-center">
@@ -107,17 +119,17 @@ export function Car({ player, position, direction, isActive }: CarProps) {
           </div>
           
           {player.crashed && (
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="text-white font-bold text-xs bg-red-800/70 px-1 rounded rotate-0">
-                X
+            <div className="absolute inset-0 flex items-center justify-center animate-pulse">
+              <div className="text-white font-bold text-xs bg-red-800/70 px-1.5 py-0.5 rounded rotate-0">
+                OUT
               </div>
             </div>
           )}
           
           {spinning && !player.crashed && (
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="text-white font-bold text-xs bg-orange-500/70 px-1 rounded rotate-0">
-                SPIN
+            <div className="absolute inset-0 flex items-center justify-center animate-bounce">
+              <div className="text-white font-bold text-xs bg-orange-500/70 px-1.5 py-0.5 rounded rotate-0">
+                SPIN!
               </div>
             </div>
           )}
