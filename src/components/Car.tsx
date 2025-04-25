@@ -1,7 +1,7 @@
 
+import React, { useState, useEffect } from 'react';
 import { cn } from "@/lib/utils";
 import { Position, Direction, Player } from "@/types/game";
-import { useState, useEffect } from "react";
 import { MoveRight, MoveLeft, MoveUp, MoveDown, 
         ArrowUpRight, ArrowUpLeft, ArrowDownRight, ArrowDownLeft } from "lucide-react";
 
@@ -88,9 +88,9 @@ export function Car({ player, position, direction, isActive }: CarProps) {
     top: `calc(${position.y} * 100% / var(--grid-size))`,
     left: `calc(${position.x} * 100% / var(--grid-size))`,
     zIndex: isActive ? 20 : 10,
-    // Using CSS variable correctly for TypeScript
-    '--grid-size': '20',
-    ...getCrashedOffset()
+    ...getCrashedOffset(),
+    // Use type assertion to allow custom CSS properties
+    ...({"--grid-size": "20"} as React.CSSProperties)
   } as React.CSSProperties;
 
   return (
