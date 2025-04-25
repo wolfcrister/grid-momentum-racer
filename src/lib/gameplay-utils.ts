@@ -140,9 +140,41 @@ export function checkFinishLineCrossed(
   return false;
 }
 
-export function checkCrash(position: Position): boolean {
-  // Only crash if the target position is not on track in the currently selected track  
-  return !tracks.oval.trackTiles.some(tt => tt.x === position.x && tt.y === position.y);
+export function checkCrash(
+  player: Player,
+  newPosition: Position,
+  trackTiles: Position[],
+  players: Player[],
+  boardSize: number
+): { crashed: boolean; didSpin: boolean } {
+  // Check if the position is on the track
+  const isOnTrack = trackTiles.some(tt => 
+    tt.x === newPosition.x && tt.y === newPosition.y
+  );
+
+  // Check for collisions with other players
+  const isOccupied = players.some(p => 
+    p.id !== player.id && !p.crashed && 
+    p.position.x === newPosition.x && p.position.y === newPosition.y
+  );
+
+  // Determine if the player crashed or spun out
+  if (!isOnTrack || isOccupied) {
+    return { crashed: true, didSpin: false };
+  }
+
+  // Check for spin out (rapid speed change)
+  const oldSpeed = player.speed;
+  const newDirection = getNewDirection(player.position, newPosition);
+  const dx = newPosition.x - player.position.x;
+  const dy = newPosition.y - player.position.y;
+  const newSpeed = Math.max(Math.abs(dx), Math.abs(dy));
+  
+  if (Math.abs(newSpeed - oldSpeed) > 1) {
+    return { crashed: false, didSpin: true };
+  }
+
+  return { crashed: false, didSpin: false };
 }
 
 // Import the required functions from movement-utils to fill the import dependencies
