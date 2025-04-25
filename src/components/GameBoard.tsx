@@ -1,4 +1,3 @@
-
 import React from "react";
 import { cn } from "@/lib/utils";
 import { GridTile } from "./GridTile";
@@ -6,6 +5,7 @@ import { Car } from "./Car";
 import { Position, Direction, Player } from "@/types/game";
 import { tracks } from "@/lib/tracks";
 import { getLastDelta } from "@/lib/game-utils";
+import { GAME_CONFIG } from "@/lib/game-config";
 
 interface GameBoardProps {
   size: number;

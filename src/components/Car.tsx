@@ -1,9 +1,9 @@
-
 import React, { useState, useEffect } from 'react';
 import { cn } from "@/lib/utils";
 import { Position, Direction, Player } from "@/types/game";
 import { MoveRight, MoveLeft, MoveUp, MoveDown, 
         ArrowUpRight, ArrowUpLeft, ArrowDownRight, ArrowDownLeft } from "lucide-react";
+import { GAME_CONFIG } from "@/lib/game-config";
 
 interface CarProps {
   player: Player;
@@ -35,12 +35,10 @@ export function Car({ player, position, direction, isActive }: CarProps) {
     }
   }, [position, prevPosition, player.speed, player.crashed]);
 
-  // Calculate offset for crashed cars (move them to the side)
   const getCrashedOffset = () => {
     if (!player.crashed) return {};
-    // Move cars slightly off to the side based on their ID to prevent stacking
-    const offsetX = ((player.id - 1) % 2) * 0.3; // Alternate left/right
-    const offsetY = Math.floor((player.id - 1) / 2) * 0.3; // Stack vertically if more than 2
+    const offsetX = ((player.id - 1) % 2) * 0.3;
+    const offsetY = Math.floor((player.id - 1) / 2) * 0.3;
     return {
       transform: `translate(${offsetX * 100}%, ${offsetY * 100}%)`
     };
@@ -81,17 +79,14 @@ export function Car({ player, position, direction, isActive }: CarProps) {
     }
   };
 
-  // Define the style properties with proper TypeScript typing
-  const carStyle = {
-    width: 'calc(100% / var(--grid-size))',
-    height: 'calc(100% / var(--grid-size))',
-    top: `calc(${position.y} * 100% / var(--grid-size))`,
-    left: `calc(${position.x} * 100% / var(--grid-size))`,
+  const carStyle: React.CSSProperties = {
+    width: `calc(100% / ${GAME_CONFIG.grid.size})`,
+    height: `calc(100% / ${GAME_CONFIG.grid.size})`,
+    top: `calc(${position.y} * 100% / ${GAME_CONFIG.grid.size})`,
+    left: `calc(${position.x} * 100% / ${GAME_CONFIG.grid.size})`,
     zIndex: isActive ? 20 : 10,
-    ...getCrashedOffset(),
-    // Use type assertion to allow custom CSS properties
-    ...({"--grid-size": "20"} as React.CSSProperties)
-  } as React.CSSProperties;
+    ...getCrashedOffset()
+  };
 
   return (
     <div

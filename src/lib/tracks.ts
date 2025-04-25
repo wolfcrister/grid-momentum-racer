@@ -1,5 +1,5 @@
-
 import { Position, Direction } from "@/types/game";
+import { GAME_CONFIG } from "./game-config";
 
 // Helper to generate all positions across a certain X between min/max Y (inclusive)
 function verticalLine(x: number, yStart: number, yEnd: number): Position[] {
@@ -17,10 +17,10 @@ function horizontalLine(y: number, xStart: number, xEnd: number): Position[] {
   return line;
 }
 
-// Generate the track tiles for a 20x20 board with a 4-tile wide oval track
+// Generate the track tiles for a board with a 4-tile wide oval track
 function generateOvalTrackTiles() {
   const trackTiles: Position[] = [];
-  const size = 20;
+  const size = GAME_CONFIG.grid.size;
   const trackWidth = 4;
   const padding = 1;
 
@@ -40,7 +40,7 @@ function generateOvalTrackTiles() {
 const ovalTrackTiles = generateOvalTrackTiles();
 
 // --- Track setup constants ---
-const size = 20;
+const size = GAME_CONFIG.grid.size;
 const trackWidth = 4;
 const padding = 1;
 
