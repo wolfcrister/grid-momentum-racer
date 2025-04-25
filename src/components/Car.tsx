@@ -81,21 +81,25 @@ export function Car({ player, position, direction, isActive }: CarProps) {
     }
   };
 
+  // Define the style properties with proper TypeScript typing
+  const carStyle = {
+    width: 'calc(100% / var(--grid-size))',
+    height: 'calc(100% / var(--grid-size))',
+    top: `calc(${position.y} * 100% / var(--grid-size))`,
+    left: `calc(${position.x} * 100% / var(--grid-size))`,
+    zIndex: isActive ? 20 : 10,
+    // Using CSS variable correctly for TypeScript
+    '--grid-size': '20',
+    ...getCrashedOffset()
+  } as React.CSSProperties;
+
   return (
     <div
       className={cn(
         "absolute z-10 flex items-center justify-center",
         "transition-all duration-300 ease-out"
       )}
-      style={{
-        width: 'calc(100% / var(--grid-size))',
-        height: 'calc(100% / var(--grid-size))',
-        top: `calc(${position.y} * 100% / var(--grid-size))`,
-        left: `calc(${position.x} * 100% / var(--grid-size))`,
-        zIndex: isActive ? 20 : 10,
-        '--grid-size': 20,
-        ...getCrashedOffset()
-      } as React.CSSProperties}
+      style={carStyle}
     >
       <div
         className={cn(
