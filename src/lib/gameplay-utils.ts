@@ -1,11 +1,24 @@
 import { Player, Position, Direction } from "@/types/game";
 import { getAllAdjacentPositions, isValidPosition, doesSegmentPassThroughTile } from "./position-utils";
-import { getLastDelta, getValidMovesByMomentum, getValidMovesWithCollisions, isPositionOccupiedByPlayer } from "./movement-utils";
+import { getLastDelta, getValidMovesByMomentum, getValidMovesWithCollisions, isPositionOccupiedByPlayer, getNextPosition } from "./movement-utils";
 import { tracks } from "./tracks";
 
 // Get valid moves based on true momentum rules (vector-based)
 export function getValidMoves(player: Player, boardSize: number, allPlayers?: Player[]): Position[] {
   if (player.crashed) return [];
+  
+  // If speed is zero, only allow moving forward in current direction
+  if (player.speed === 0) {
+    const forwardPosition = getNextPosition(player.position, player.direction);
+    
+    // Check if the forward position is valid and on track
+    if (isValidPosition(forwardPosition, boardSize) && 
+        tracks.oval.trackTiles.some(tt => tt.x === forwardPosition.x && tt.y === forwardPosition.y) &&
+        (!allPlayers || !isPositionOccupiedByPlayer(forwardPosition, allPlayers.filter(p => p.id !== player.id)))) {
+      return [forwardPosition];
+    }
+    return [];
+  }
   
   // If allPlayers is provided, check for collisions with other players
   if (allPlayers) {
