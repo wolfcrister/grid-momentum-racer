@@ -1,73 +1,38 @@
-import React, { useState, useEffect } from "react";
-import { Player, Position, Track, GameMode, Direction, PlayerColor } from "@/types/game";
+
+import React, { useEffect } from "react";
+import { Position } from "@/types/game";
 import { GameSetup } from "@/components/game/GameSetup";
 import { GameLayout } from "@/components/game/GameLayout";
-import { tracks } from "@/lib/tracks";
+import { useGameState } from "@/hooks/useGameState";
+import { initializeGame } from "@/utils/gameInitializer";
+import { executeMove } from "@/utils/gameMoveHandler";
+import { checkCrash, getValidMoves } from "@/lib/game-utils";
 import { toast } from "@/components/ui/sonner";
-import {
-  getValidMoves,
-  getNewDirection,
-  calculateNewSpeed,
-  checkSlipstream,
-  checkCheckpointCrossed,
-  checkFinishLineCrossed,
-  getReverseDirection,
-  checkCrash,
-  getRandomDirection
-} from "@/lib/game-utils";
-
-const playerColors = ["red", "blue", "yellow", "green"] as const;
-
-type PlayerWithHistory = Player & {
-  moveHistory?: Position[];
-};
 
 const Index = () => {
-  const [gameStarted, setGameStarted] = useState(false);
-  const [trackType, setTrackType] = useState<keyof typeof tracks>("oval");
-  const [track, setTrack] = useState<Track>(tracks[trackType]);
-  const [players, setPlayers] = useState<PlayerWithHistory[]>([]);
-  const [currentPlayer, setCurrentPlayer] = useState(0);
-  const [currentRound, setCurrentRound] = useState(1);
-  const [winner, setWinner] = useState<Player | null>(null);
-  const [validMoves, setValidMoves] = useState<Position[]>([]);
-  const [gameMode, setGameMode] = useState<GameMode>("turn-based");
-  const [programmedMoves, setProgrammedMoves] = useState<Record<number, Position>>({});
-  const [playerCount, setPlayerCount] = useState(2);
-
-  const initializeGame = ({ trackType, playerCount, gameMode }: {
-    trackType: keyof typeof tracks;
-    playerCount: number;
-    gameMode: GameMode;
-  }) => {
-    const newTrack = tracks[trackType];
-    setTrack(newTrack);
-    setTrackType(trackType);
-    setPlayerCount(playerCount);
-    setGameMode(gameMode);
-
-    const initialPlayers: Player[] = [];
-    for (let i = 0; i < playerCount; i++) {
-      const startPos = newTrack.startPositions[i];
-      initialPlayers.push({
-        id: i + 1,
-        position: { ...startPos.position },
-        direction: startPos.direction,
-        speed: 0,
-        color: playerColors[i] as PlayerColor,
-        checkpointsPassed: new Set(),
-        totalCheckpoints: newTrack.checkpoints.length,
-        isFinished: false,
-        crashed: false
-      });
-    }
-
-    setPlayers(initialPlayers);
-    setCurrentPlayer(0);
-    setWinner(null);
-    setCurrentRound(1);
-    setGameStarted(true);
-  };
+  const gameState = useGameState();
+  const {
+    gameStarted,
+    setGameStarted,
+    track,
+    setTrack,
+    players,
+    setPlayers,
+    currentPlayer,
+    setCurrentPlayer,
+    currentRound,
+    setCurrentRound,
+    winner,
+    setWinner,
+    validMoves,
+    setValidMoves,
+    gameMode,
+    setGameMode,
+    programmedMoves,
+    setProgrammedMoves,
+    playerCount,
+    setPlayerCount,
+  } = gameState;
 
   useEffect(() => {
     if (!gameStarted) return;
@@ -95,7 +60,6 @@ const Index = () => {
             });
           } else if (didSpin) {
             updatedPlayer.speed = 0;
-            updatedPlayer.direction = getRandomDirection();
             toast(`Player ${updatedPlayer.id} spun out!`, {
               description: "Speed reset to 0",
               duration: 2000
@@ -112,14 +76,15 @@ const Index = () => {
     setValidMoves(moves);
   }, [currentPlayer, players, track.size, track.trackTiles, gameStarted]);
 
-  useEffect(() => {
-    if (gameStarted && players[currentPlayer].crashed) {
-      const timer = setTimeout(() => {
-        handleSkipTurn();
-      }, 500);
-      return () => clearTimeout(timer);
-    }
-  }, [currentPlayer, players, gameStarted]);
+  const handleInitGame = (config: { trackType: any; playerCount: number; gameMode: any; }) => {
+    const { track: newTrack, players: newPlayers, gameMode: newGameMode } = initializeGame(config);
+    setTrack(newTrack);
+    setPlayers(newPlayers);
+    setGameMode(newGameMode);
+    setPlayerCount(config.playerCount);
+    setGameStarted(true);
+    setWinner(null);
+  };
 
   const handleMove = (position: Position) => {
     if (gameMode === "programming") {
@@ -135,7 +100,15 @@ const Index = () => {
         setCurrentPlayer(nextPlayer);
       }
     } else {
-      executeMove(currentPlayer, position);
+      const { updatedPlayers, hasWon } = executeMove(currentPlayer, position, players, track);
+      setPlayers(updatedPlayers);
+      if (hasWon) {
+        setWinner(hasWon);
+        toast("Winner!", {
+          description: `Player ${hasWon.id} has won the race!`,
+          duration: 5000
+        });
+      }
       
       const nextPlayer = (currentPlayer + 1) % playerCount;
       if (nextPlayer === 0) {
@@ -145,71 +118,29 @@ const Index = () => {
     }
   };
 
-  const executeMove = (playerIndex: number, newPosition: Position) => {
-    setPlayers(prevPlayers => {
-      const updatedPlayers = [...prevPlayers];
-      const player = { ...updatedPlayers[playerIndex] };
-      const lastPosition = { ...player.position };
-
-      const newDirection = getNewDirection(player.position, newPosition);
-      const newSpeed = calculateNewSpeed(player.position, newPosition);
-
-      const moveHistory = player.moveHistory || [];
-      moveHistory.push({ ...player.position });
-      player.moveHistory = moveHistory.slice(-5);
-
-      player.position = newPosition;
-      player.direction = newDirection;
-      player.speed = newSpeed;
-
-      const otherPlayers = prevPlayers.filter((_, i) => i !== playerIndex);
-      const hasSlipstream = checkSlipstream(player, otherPlayers, newPosition);
-      if (hasSlipstream) {
-        player.speed += 1;
-        toast("Slipstream boost!", {
-          description: `Player ${player.id} gets +1 speed`,
-          duration: 2000
-        });
-      }
-
-      const cpIndex = checkCheckpointCrossed(lastPosition, newPosition, track.checkpoints);
-      if (cpIndex !== null && !player.checkpointsPassed.has(cpIndex)) {
-        const newPassed = new Set(player.checkpointsPassed);
-        newPassed.add(cpIndex);
-        player.checkpointsPassed = newPassed;
-        
-        toast("Checkpoint passed!", {
-          description: `Player ${player.id}: ${player.checkpointsPassed.size}/${player.totalCheckpoints}`,
-          duration: 2000
-        });
-      }
-
-      if (
-        player.checkpointsPassed.size === player.totalCheckpoints &&
-        checkFinishLineCrossed(lastPosition, newPosition, track.finishLine)
-      ) {
-        player.isFinished = true;
-        setWinner(player);
-        
-        toast("Winner!", {
-          description: `Player ${player.id} has won the race!`,
-          duration: 5000
-        });
-      }
-
-      updatedPlayers[playerIndex] = player;
-      return updatedPlayers;
-    });
-  };
-
   const executeAllMoves = () => {
+    let currentPlayers = [...players];
+    let gameWinner = null;
+    
     for (let i = 0; i < playerCount; i++) {
       if (programmedMoves[i]) {
-        executeMove(i, programmedMoves[i]);
+        const { updatedPlayers, hasWon } = executeMove(i, programmedMoves[i], currentPlayers, track);
+        currentPlayers = updatedPlayers;
+        if (hasWon) gameWinner = hasWon;
       }
     }
+    
+    setPlayers(currentPlayers);
     setProgrammedMoves({});
     setCurrentRound(currentRound + 1);
+    
+    if (gameWinner) {
+      setWinner(gameWinner);
+      toast("Winner!", {
+        description: `Player ${gameWinner.id} has won the race!`,
+        duration: 5000
+      });
+    }
   };
 
   const handleSkipTurn = () => {
@@ -231,14 +162,8 @@ const Index = () => {
     setCurrentPlayer(nextPlayer);
   };
 
-  const handleReset = () => {
-    setGameStarted(false);
-    setProgrammedMoves({});
-    setWinner(null);
-  };
-
   if (!gameStarted) {
-    return <GameSetup onStartGame={initializeGame} />;
+    return <GameSetup onStartGame={handleInitGame} />;
   }
 
   return (
@@ -250,7 +175,7 @@ const Index = () => {
       winner={winner}
       track={track}
       onMove={handleMove}
-      onReset={handleReset}
+      onReset={() => setGameStarted(false)}
       onSkipTurn={handleSkipTurn}
       gameMode={gameMode}
     />
