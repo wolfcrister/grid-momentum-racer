@@ -107,6 +107,12 @@ export function getReverseDirection(direction: Direction): Direction {
   return reverseDirection[direction];
 }
 
+// Get a random direction
+export function getRandomDirection(): Direction {
+  const directions: Direction[] = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"];
+  return directions[Math.floor(Math.random() * directions.length)];
+}
+
 // Check if a player has crossed a checkpoint line
 export function checkCheckpointCrossed(
   from: Position,
@@ -140,41 +146,27 @@ export function checkFinishLineCrossed(
   return false;
 }
 
+// Updated crash check function to implement new crash/spin mechanics
 export function checkCrash(
   player: Player,
-  newPosition: Position,
   trackTiles: Position[],
   players: Player[],
   boardSize: number
 ): { crashed: boolean; didSpin: boolean } {
-  // Check if the position is on the track
-  const isOnTrack = trackTiles.some(tt => 
-    tt.x === newPosition.x && tt.y === newPosition.y
-  );
-
-  // Check for collisions with other players
-  const isOccupied = players.some(p => 
-    p.id !== player.id && !p.crashed && 
-    p.position.x === newPosition.x && p.position.y === newPosition.y
-  );
-
-  // Determine if the player crashed or spun out
-  if (!isOnTrack || isOccupied) {
-    return { crashed: true, didSpin: false };
-  }
-
-  // Check for spin out (rapid speed change)
-  const oldSpeed = player.speed;
-  const newDirection = getNewDirection(player.position, newPosition);
-  const dx = newPosition.x - player.position.x;
-  const dy = newPosition.y - player.position.y;
-  const newSpeed = Math.max(Math.abs(dx), Math.abs(dy));
+  // Get valid moves
+  const validMoves = getValidMoves(player, boardSize, players);
   
-  if (Math.abs(newSpeed - oldSpeed) > 1) {
+  // If there are valid moves, there's no crash
+  if (validMoves.length > 0) {
+    return { crashed: false, didSpin: false };
+  }
+  
+  // If no valid moves are available, decide between crash and spin based on speed
+  if (player.speed >= 4) {
+    return { crashed: true, didSpin: false };
+  } else {
     return { crashed: false, didSpin: true };
   }
-
-  return { crashed: false, didSpin: false };
 }
 
 // Import the required functions from movement-utils to fill the import dependencies

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Player, Position, Track, GameMode, Direction, PlayerColor } from "@/types/game";
 import { GameSetup } from "@/components/game/GameSetup";
@@ -13,7 +12,8 @@ import {
   checkCheckpointCrossed,
   checkFinishLineCrossed,
   getReverseDirection,
-  checkCrash
+  checkCrash,
+  getRandomDirection
 } from "@/lib/game-utils";
 
 const playerColors = ["red", "blue", "yellow", "green"] as const;
@@ -78,9 +78,45 @@ const Index = () => {
     if (!gameStarted) return;
     
     const player = players[currentPlayer];
+    // Check for crash or spin at the beginning of turn
+    if (!player.crashed) {
+      const { crashed, didSpin } = checkCrash(
+        player, 
+        track.trackTiles, 
+        players, 
+        track.size
+      );
+      
+      if (crashed || didSpin) {
+        setPlayers(prevPlayers => {
+          const updatedPlayers = [...prevPlayers];
+          const updatedPlayer = { ...updatedPlayers[currentPlayer] };
+          
+          if (crashed) {
+            updatedPlayer.crashed = true;
+            updatedPlayer.speed = 0;
+            toast(`Player ${updatedPlayer.id} crashed!`, {
+              description: "Out of the race",
+              duration: 3000
+            });
+          } else if (didSpin) {
+            updatedPlayer.speed = 0;
+            updatedPlayer.direction = getRandomDirection();
+            toast(`Player ${updatedPlayer.id} spun out!`, {
+              description: "Speed reset to 0",
+              duration: 2000
+            });
+          }
+          
+          updatedPlayers[currentPlayer] = updatedPlayer;
+          return updatedPlayers;
+        });
+      }
+    }
+    
     const moves = getValidMoves(player, track.size, players);
     setValidMoves(moves);
-  }, [currentPlayer, players, track.size, gameStarted]);
+  }, [currentPlayer, players, track.size, track.trackTiles, gameStarted]);
 
   // Handle player movement
   const handleMove = (position: Position) => {
@@ -130,66 +166,46 @@ const Index = () => {
       moveHistory.push({ ...player.position });
       player.moveHistory = moveHistory.slice(-5); // Keep last 5 moves
 
-      // Check for crash or spin out
-      const { crashed, didSpin } = checkCrash(
-        player,
-        newPosition,
-        track.trackTiles,
-        prevPlayers,
-        track.size
-      );
+      // Update player position, direction, and speed
+      player.position = newPosition;
+      player.direction = newDirection;
+      player.speed = newSpeed;
 
-      if (crashed) {
-        player.crashed = true;
-        player.speed = 0;
-        toast("Player " + player.id + " crashed!", {
-          description: "Out of the race",
-          duration: 3000
-        });
-      } else if (didSpin) {
-        player.speed = 0;
-        player.direction = getReverseDirection(newDirection);
-        player.crashed = false;
-        toast("Player " + player.id + " spun out!", {
-          description: "Speed reset to 0",
+      // Check for slipstream
+      const otherPlayers = prevPlayers.filter((_, i) => i !== playerIndex);
+      const hasSlipstream = checkSlipstream(player, otherPlayers, newPosition);
+      if (hasSlipstream) {
+        player.speed += 1;
+        toast("Slipstream boost!", {
+          description: `Player ${player.id} gets +1 speed`,
           duration: 2000
         });
-      } else {
-        // Check for slipstream
-        const otherPlayers = prevPlayers.filter((_, i) => i !== playerIndex);
-        const hasSlipstream = checkSlipstream(player, otherPlayers, newPosition);
-        const speedBonus = hasSlipstream ? 1 : 0;
+      }
 
-        player.position = newPosition;
-        player.direction = newDirection;
-        player.speed = newSpeed + speedBonus;
-        player.crashed = false;
+      // Check checkpoints and finish line
+      const cpIndex = checkCheckpointCrossed(lastPosition, newPosition, track.checkpoints);
+      if (cpIndex !== null && !player.checkpointsPassed.has(cpIndex)) {
+        const newPassed = new Set(player.checkpointsPassed);
+        newPassed.add(cpIndex);
+        player.checkpointsPassed = newPassed;
+        
+        toast("Checkpoint passed!", {
+          description: `Player ${player.id}: ${player.checkpointsPassed.size}/${player.totalCheckpoints}`,
+          duration: 2000
+        });
+      }
 
-        // Check checkpoints and finish line
-        const cpIndex = checkCheckpointCrossed(lastPosition, newPosition, track.checkpoints);
-        if (cpIndex !== null && !player.checkpointsPassed.has(cpIndex)) {
-          const newPassed = new Set(player.checkpointsPassed);
-          newPassed.add(cpIndex);
-          player.checkpointsPassed = newPassed;
-          
-          toast("Checkpoint passed!", {
-            description: `Player ${player.id}: ${player.checkpointsPassed.size}/${player.totalCheckpoints}`,
-            duration: 2000
-          });
-        }
-
-        if (
-          player.checkpointsPassed.size === player.totalCheckpoints &&
-          checkFinishLineCrossed(lastPosition, newPosition, track.finishLine)
-        ) {
-          player.isFinished = true;
-          setWinner(player);
-          
-          toast("Winner!", {
-            description: `Player ${player.id} has won the race!`,
-            duration: 5000
-          });
-        }
+      if (
+        player.checkpointsPassed.size === player.totalCheckpoints &&
+        checkFinishLineCrossed(lastPosition, newPosition, track.finishLine)
+      ) {
+        player.isFinished = true;
+        setWinner(player);
+        
+        toast("Winner!", {
+          description: `Player ${player.id} has won the race!`,
+          duration: 5000
+        });
       }
 
       updatedPlayers[playerIndex] = player;
