@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { cn } from "@/lib/utils";
 import { GridTile } from "./GridTile";
@@ -106,35 +107,39 @@ export function GameBoard({
           <ZoomIn className="w-5 h-5" />
         </button>
       </div>
-      <div
-        className={cn(
-          "grid gap-0.5 bg-muted p-0.5 rounded-lg overflow-hidden",
-          "shadow-2xl border-2 border-accent/50"
-        )}
-        style={{
-          gridTemplateColumns: `repeat(${size.width}, 1fr)`,
-          aspectRatio: `${size.width}/${size.height}`,
-          position: "relative",
-          transform: `scale(${scale})`,
-          transformOrigin: 'center center',
-          transition: 'transform 0.3s ease'
-        }}
-      >
-        {Array.from({ length: size.width * size.height }).map((_, index) => {
-          const x = index % size.width;
-          const y = Math.floor(index / size.width);
-          return renderTile(x, y);
-        })}
+      <div className="overflow-auto max-h-[75vh] border border-accent/30 rounded-lg">
+        <div
+          className={cn(
+            "grid gap-0.5 bg-muted p-0.5 rounded-lg",
+            "shadow-2xl border-2 border-accent/50"
+          )}
+          style={{
+            gridTemplateColumns: `repeat(${size.width}, 1fr)`,
+            aspectRatio: `${size.width}/${size.height}`,
+            position: "relative",
+            transform: `scale(${scale})`,
+            transformOrigin: 'center center',
+            transition: 'transform 0.3s ease',
+            width: `${100 / scale}%`,
+            margin: '0 auto'
+          }}
+        >
+          {Array.from({ length: size.width * size.height }).map((_, index) => {
+            const x = index % size.width;
+            const y = Math.floor(index / size.width);
+            return renderTile(x, y);
+          })}
 
-        {players.map((player, index) => (
-          <Car 
-            key={player.id}
-            player={player}
-            isActive={index === currentPlayer}
-            position={player.position}
-            direction={player.direction}
-          />
-        ))}
+          {players.map((player, index) => (
+            <Car 
+              key={player.id}
+              player={player}
+              isActive={index === currentPlayer}
+              position={player.position}
+              direction={player.direction}
+            />
+          ))}
+        </div>
       </div>
     </div>
   );
