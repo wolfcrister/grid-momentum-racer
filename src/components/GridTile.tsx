@@ -22,10 +22,10 @@ export function GridTile({
   onClick 
 }: GridTileProps) {
   const colorMap = {
-    red: "ring-[#ea384c] bg-[#ea384c]",
-    blue: "ring-secondary bg-secondary",
-    yellow: "ring-accent bg-accent",
-    green: "ring-green-500 bg-green-500"
+    red: "ring-[#ea384c]",
+    blue: "ring-secondary",
+    yellow: "ring-accent",
+    green: "ring-green-500"
   };
 
   const playerColorClasses = colorMap[playerColor];
@@ -54,7 +54,7 @@ export function GridTile({
         <div className="absolute inset-0 flex items-center justify-center opacity-70">
           <div className={cn(
             "w-1.5 h-1.5 rounded-full",
-            isMomentumPosition ? `${playerColorClasses} animate-pulse w-2.5 h-2.5` : `${playerColorClasses}/60`,
+            isMomentumPosition ? `${playerColorClasses} w-2.5 h-2.5 animate-pulse` : `${playerColorClasses}`,
           )}></div>
         </div>
       )}
