@@ -1,7 +1,8 @@
+
 import React from "react";
 import { GameBoard } from "@/components/GameBoard";
 import { GameControls } from "@/components/GameControls";
-import { MoveLog } from "@/components/MoveLog";
+import { MoveLog, MoveLogEntry } from "@/components/MoveLog";
 import { Position, Player } from "@/types/game";
 import { tracks } from "@/lib/tracks";
 

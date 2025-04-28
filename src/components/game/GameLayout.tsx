@@ -1,9 +1,11 @@
+
 import React from "react";
 import { GameHeader } from "./GameHeader";
 import { GamePlayArea } from "./GamePlayArea";
 import { GameSidebar } from "./GameSidebar";
 import { Position, Player } from "@/types/game";
 import { tracks } from "@/lib/tracks";
+import { MoveLogEntry } from "@/components/MoveLog";
 
 interface GameLayoutProps {
   players: Player[];
