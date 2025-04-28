@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { cn } from "@/lib/utils";
 import { GridTile } from "./GridTile";
 import { Car } from "./Car";
@@ -29,6 +28,30 @@ export function GameBoard({
   finishLine
 }: GameBoardProps) {
   const [scale, setScale] = useState(1);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    centerOnActivePlayer();
+  }, [currentPlayer, scale]);
+
+  const centerOnActivePlayer = () => {
+    if (!scrollContainerRef.current) return;
+
+    const player = players[currentPlayer];
+    if (!player) return;
+
+    const tileWidth = scrollContainerRef.current.scrollWidth / (size.width * scale);
+    const tileHeight = scrollContainerRef.current.scrollHeight / (size.height * scale);
+
+    const targetX = (player.position.x * tileWidth) - (scrollContainerRef.current.clientWidth / 2) + (tileWidth / 2);
+    const targetY = (player.position.y * tileHeight) - (scrollContainerRef.current.clientHeight / 2) + (tileHeight / 2);
+
+    scrollContainerRef.current.scrollTo({
+      left: targetX,
+      top: targetY,
+      behavior: 'smooth'
+    });
+  };
 
   const getMomentumPosition = () => {
     const player = players[currentPlayer];
@@ -107,7 +130,7 @@ export function GameBoard({
           <ZoomIn className="w-5 h-5" />
         </button>
       </div>
-      <div className="overflow-auto max-h-[75vh] border border-accent/30 rounded-lg">
+      <div ref={scrollContainerRef} className="overflow-auto max-h-[75vh] border border-accent/30 rounded-lg">
         <div
           className={cn(
             "grid gap-0.5 bg-muted p-0.5 rounded-lg",
