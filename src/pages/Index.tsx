@@ -1,5 +1,4 @@
-
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Position } from "@/types/game";
 import { GameSetup } from "@/components/game/GameSetup";
 import { GameLayout } from "@/components/game/GameLayout";
@@ -8,6 +7,7 @@ import { initializeGame } from "@/utils/gameInitializer";
 import { executeMove } from "@/utils/gameMoveHandler";
 import { checkCrash, getValidMoves } from "@/lib/game-utils";
 import { toast } from "@/components/ui/sonner";
+import { MoveLogEntry } from "@/components/MoveLog";
 
 const Index = () => {
   const gameState = useGameState();
@@ -33,6 +33,8 @@ const Index = () => {
     playerCount,
     setPlayerCount,
   } = gameState;
+
+  const [moveLog, setMoveLog] = useState<MoveLogEntry[]>([]);
 
   useEffect(() => {
     if (!gameStarted) return;
@@ -76,6 +78,13 @@ const Index = () => {
     setValidMoves(moves);
   }, [currentPlayer, players, track.size, track.trackTiles, gameStarted]);
 
+  // Add effect to auto-skip crashed players
+  useEffect(() => {
+    if (gameStarted && players[currentPlayer]?.crashed) {
+      handleSkipTurn();
+    }
+  }, [currentPlayer, players, gameStarted]);
+
   const handleInitGame = (config: { trackType: any; playerCount: number; gameMode: any; }) => {
     const { track: newTrack, players: newPlayers, gameMode: newGameMode } = initializeGame(config);
     setTrack(newTrack);
@@ -84,6 +93,7 @@ const Index = () => {
     setPlayerCount(config.playerCount);
     setGameStarted(true);
     setWinner(null);
+    setMoveLog([]);
   };
 
   const handleMove = (position: Position) => {
@@ -101,6 +111,18 @@ const Index = () => {
       }
     } else {
       const { updatedPlayers, hasWon } = executeMove(currentPlayer, position, players, track);
+      
+      // Create move log entry
+      const currentPlayerData = players[currentPlayer];
+      setMoveLog(prev => [...prev, {
+        playerId: currentPlayerData.id,
+        playerColor: currentPlayerData.color,
+        from: currentPlayerData.position,
+        to: position,
+        round: currentRound,
+        speedChange: 0 // We can calculate this if needed
+      }]);
+
       setPlayers(updatedPlayers);
       if (hasWon) {
         setWinner(hasWon);
@@ -178,6 +200,7 @@ const Index = () => {
       onReset={() => setGameStarted(false)}
       onSkipTurn={handleSkipTurn}
       gameMode={gameMode}
+      moveLog={moveLog}
     />
   );
 };

@@ -1,4 +1,3 @@
-
 import React from "react";
 import { GameBoard } from "@/components/GameBoard";
 import { GameControls } from "@/components/GameControls";
@@ -16,6 +15,7 @@ interface GamePlayAreaProps {
   onReset: () => void;
   onSkipTurn: () => void;
   gameMode: "turn-based" | "programming";
+  moveLog?: MoveLogEntry[];
 }
 
 export function GamePlayArea({
@@ -28,6 +28,7 @@ export function GamePlayArea({
   onReset,
   onSkipTurn,
   gameMode,
+  moveLog = []
 }: GamePlayAreaProps) {
   return (
     <div className="space-y-6">
@@ -52,7 +53,7 @@ export function GamePlayArea({
       />
       
       <MoveLog 
-        moves={[]} 
+        moves={moveLog} 
         maxEntries={20} 
       />
     </div>

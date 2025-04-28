@@ -1,4 +1,3 @@
-
 import React from "react";
 import { GameHeader } from "./GameHeader";
 import { GamePlayArea } from "./GamePlayArea";
@@ -17,6 +16,7 @@ interface GameLayoutProps {
   onReset: () => void;
   onSkipTurn: () => void;
   gameMode: "turn-based" | "programming";
+  moveLog?: MoveLogEntry[];
 }
 
 export function GameLayout({
@@ -30,6 +30,7 @@ export function GameLayout({
   onReset,
   onSkipTurn,
   gameMode,
+  moveLog = []
 }: GameLayoutProps) {
   return (
     <div className="min-h-screen bg-background text-foreground p-4">
@@ -47,6 +48,7 @@ export function GameLayout({
             onReset={onReset}
             onSkipTurn={onSkipTurn}
             gameMode={gameMode}
+            moveLog={moveLog}
           />
           
           <GameSidebar
