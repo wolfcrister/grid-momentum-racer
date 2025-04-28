@@ -134,20 +134,6 @@ export function Car({ player, position, direction, isActive }: CarProps) {
           )}
         </div>
       </div>
-      
-      {player.speed > 0 && !player.crashed && (
-        <div className="absolute -bottom-3 left-1/2 transform -translate-x-1/2 flex space-x-0.5">
-          {Array.from({ length: player.speed }).map((_, i) => (
-            <div 
-              key={i} 
-              className={cn(
-                "w-1 h-1 rounded-full",
-                carColorClasses[player.color as keyof typeof carColorClasses]
-              )}
-            ></div>
-          ))}
-        </div>
-      )}
     </div>
   );
 }
