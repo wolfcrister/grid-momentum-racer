@@ -99,6 +99,7 @@ export function GameBoard({
         isValidMove={isValidMove}
         isMomentumPosition={isMomentumPosition}
         isTrackTile={isTrackTile}
+        playerColor={players[currentPlayer].color}
         onClick={() => isValidMove && onMove(position)}
       />
     );
